@@ -10,7 +10,12 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded] = useFonts({
     Poppins: require("../assets/fonts/Poppins/Poppins-Medium.ttf"),
-    Voll: require("../assets/fonts/Vollkorn/Vollkorn-Medium.ttf"),
+    Poppins_Bold: require("../assets/fonts/Poppins/Poppins-Bold.ttf"),
+    Poppins_SemiBold: require("../assets/fonts/Poppins/Poppins-SemiBold.ttf"),
+
+    Vollkorn: require("../assets/fonts/Vollkorn/Vollkorn-Medium.ttf"),
+    Vollkorn_Bold: require("../assets/fonts/Vollkorn/Vollkorn-Bold.ttf"),
+    Vollkorn_ExtraBold: require("../assets/fonts/Vollkorn/Vollkorn-ExtraBold.ttf"),
   });
 
   useEffect(() => {
@@ -30,7 +35,7 @@ const RootLayoutNav = () => {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme !== "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
