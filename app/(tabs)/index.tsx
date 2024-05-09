@@ -1,33 +1,27 @@
-import { StyleSheet, View, Text } from "react-native";
-import ts from "@/constants/TextStyles";
+import { StyleSheet, ScrollView } from "react-native";
+import * as CT from "@/components/TextStyles";
 
-export default function TabOneScreen() {
+export default function FontScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={[ts.textInput]}>TextInput</Text>
-      <Text style={[ts.tabIconText]}>TabIconText</Text>
-      <Text style={[ts.tabIconSelected]}>TabIconSelected</Text>
-      <Text style={[ts.listTextBold]}>ListTextBold</Text>
-      <Text style={[ts.mealCardTitle]}>MealCardTitle</Text>
-      <Text style={[ts.text]}>Text</Text>
-      <Text style={[ts.listText]}>ListText</Text>
-      <Text style={[ts.smallerButtonTitle]}>SmallerButtonTitle</Text>
-      <Text style={[ts.cardHeader]}>CardHeader</Text>
-      <Text style={[ts.heading]}>Heading</Text>
-      <Text style={[ts.mainHeading]}>MainHeading</Text>
-      <Text style={[ts.primaryButtonText]}>PrimaryButtonText</Text>
-      <Text style={[ts.superHeader]}>SuperHeader</Text>
-    </View>
+    <ScrollView>
+      <CT.Text_Input>TextInput</CT.Text_Input>
+      <CT.Text_TabIconText>TabIconText</CT.Text_TabIconText>
+      <CT.Text_TabIconSelected>TabIconSelected</CT.Text_TabIconSelected>
+      <CT.Text_ListTextBold>ListTextBold</CT.Text_ListTextBold>
+      <CT.Text_MealCardTitle>MealCardTitle</CT.Text_MealCardTitle>
+      <CT.Text_Text>Text</CT.Text_Text>
+      <CT.Text_ListText>ListText</CT.Text_ListText>
+      <CT.Text_SmallerButtonTitle>SmallerButtonTitle</CT.Text_SmallerButtonTitle>
+      <CT.Text_CardHeader>CardHeader</CT.Text_CardHeader>
+      <CT.Text_Heading>Heading</CT.Text_Heading>
+      <CT.Text_MainHeading>MainHeading</CT.Text_MainHeading>
+      <CT.Text_PrimaryButtonText>PrimaryButtonText</CT.Text_PrimaryButtonText>
+      <CT.Text_SuperHeader>SuperHeader</CT.Text_SuperHeader>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
   separator: {
     marginVertical: 30,
     height: 1,

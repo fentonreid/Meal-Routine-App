@@ -1,3 +1,4 @@
+import { COLOURS } from "@/constants/Colours";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -32,10 +33,36 @@ export default function RootLayout() {
 }
 
 const RootLayoutNav = () => {
-  const colorScheme = useColorScheme();
+  const colourScheme = useColorScheme();
+  const colours = COLOURS[colourScheme ?? "dark"];
+
+  // Custom styling override light and dark defaults for select properties: https://reactnavigation.org/docs/themes/
+  const MyDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: colours["background"],
+      card: colours["background"],
+      text: colours["mainHeading"],
+      // border: string,
+      // notification: string
+    },
+  };
+
+  const MyLightTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colours["background"],
+      card: colours["background"],
+      text: colours["mainHeading"],
+      // border: string,
+      // notification: string
+    },
+  };
 
   return (
-    <ThemeProvider value={colorScheme !== "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colourScheme === "dark" ? MyDarkTheme : MyLightTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>

@@ -7,13 +7,13 @@ const TabLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Tab One",
+          title: "Text Styles",
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="icon"
         options={{
-          title: "Tab Two",
+          title: "Icons",
         }}
       />
     </Tabs>
