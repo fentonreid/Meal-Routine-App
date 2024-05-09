@@ -1,10 +1,12 @@
 import { StyleSheet, ScrollView } from "react-native";
-import { Horse } from "phosphor-react-native";
+import { Horse, Heart, Cube } from "phosphor-react-native";
 
 export default function IconScreen() {
   return (
     <ScrollView>
       <Horse />
+      <Heart color="#AE2983" weight="fill" size={32} />
+      <Cube color="teal" weight="duotone" />
     </ScrollView>
   );
 }
