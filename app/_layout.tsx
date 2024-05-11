@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import * as Notifications from "expo-notifications";
+import "@/src/i18n/config.ts";
 
 SplashScreen.preventAutoHideAsync();
 

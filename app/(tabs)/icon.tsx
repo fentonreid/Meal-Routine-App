@@ -14,6 +14,7 @@ import {
   DotsThreeCircle,
   ForkKnife,
   GearSix,
+  Globe,
   Heart,
   Lightning,
   ListChecks,
@@ -280,6 +281,12 @@ const IconScreen = () => {
         <Text>Radioactive</Text>
         <Radioactive color={colours["accent"]} weight="fill" size={32} />
         <Text>radioactive</Text>
+      </View>
+
+      <View style={styles.container}>
+        <Text>World</Text>
+        <Globe color={colours["accent"]} weight="fill" size={32} />
+        <Text>globe</Text>
       </View>
     </ScrollView>
   );

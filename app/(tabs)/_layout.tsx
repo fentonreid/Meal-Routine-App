@@ -11,6 +11,12 @@ const TabLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="locale"
+        options={{
+          title: "Locale",
+        }}
+      />
+      <Tabs.Screen
         name="vibrations"
         options={{
           title: "Vibrations",
