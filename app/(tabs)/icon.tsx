@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowsOut,
   Bell,
+  Book,
   CalendarBlank,
   CaretDown,
   CaretLeft,
@@ -211,10 +212,14 @@ const IconScreen = () => {
       </View>
 
       <View style={styles.container}>
-        {/* This one is going to need to be custom..., mix of book and heart */}
         <Text>Heart Book Outline</Text>
-        <Heart color={colours["accent"]} weight="fill" size={32} />
-        <Text>TODO:::::</Text>
+        <View>
+          <Book color={colours["accent"]} weight="regular" size={32} />
+          <View style={styles.heartContainer}>
+            <Heart color={colours["accent"]} weight="fill" size={12} />
+          </View>
+        </View>
+        <Text>heart-book-custom</Text>
       </View>
 
       <View style={styles.container}>
@@ -290,11 +295,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-});
 
-// ** TODO
-// Probably need to define a list of icons that are used, and create components for them
-// Depends on if they are different depending on light vs dark theme, maybe they won't be????
-// Check tomorrow :)
+  heartContainer: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -7, // Adjust to center the heart vertically
+    marginLeft: -6, // Adjust to center the heart horizontally
+  },
+});
 
 export default IconScreen;
