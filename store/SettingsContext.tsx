@@ -1,5 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
 import { SettingsContextModel } from "@/models/SettingsContext";
+import * as Notifications from "expo-notifications";
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,
@@ -18,12 +19,11 @@ const SettingsContextProvider = ({ children }: any) => {
   const [vibrationsEnabled, setVibrationsEnabled] = useState<boolean>(true);
   const [lightThemeEnabled, setLightThemeEnabled] = useState<boolean>(true);
 
-  useEffect(() => {
-    console.log("VIBRATIONS NOW HAS A VALUE OF: ", vibrationsEnabled);
-  }, [vibrationsEnabled]);
-
-  const toggleNotifications = (newState: boolean) => {
+  const toggleNotifications = async (newState: boolean) => {
     setNotificationsEnabled(newState);
+
+    // Cancel all pending notifications
+    await Notifications.cancelAllScheduledNotificationsAsync();
   };
 
   const toggleVibrations = (newState: boolean) => {

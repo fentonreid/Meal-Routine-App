@@ -5,18 +5,6 @@ const TabLayout = () => {
   return (
     <Tabs screenOptions={{}}>
       <Tabs.Screen
-        name="index"
-        options={{
-          title: "Text Styles",
-        }}
-      />
-      <Tabs.Screen
-        name="icon"
-        options={{
-          title: "Icons",
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
@@ -26,6 +14,24 @@ const TabLayout = () => {
         name="vibrations"
         options={{
           title: "Vibrations",
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: "Notifications",
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Text Styles",
+        }}
+      />
+      <Tabs.Screen
+        name="icon"
+        options={{
+          title: "Icons",
         }}
       />
     </Tabs>
