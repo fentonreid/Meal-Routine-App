@@ -16,6 +16,18 @@ const TabLayout = () => {
           title: "Icons",
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+        }}
+      />
+      <Tabs.Screen
+        name="vibrations"
+        options={{
+          title: "Vibrations",
+        }}
+      />
     </Tabs>
   );
 };
