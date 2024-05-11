@@ -8,6 +8,7 @@ import {
   CaretDown,
   CaretLeft,
   CaretRight,
+  ChartBar,
   CheckCircle,
   DotsThreeCircle,
   ForkKnife,
@@ -24,9 +25,12 @@ import {
   PencilCircle,
   PencilLine,
   PlusCircle,
+  Radioactive,
   ShareNetwork,
   SlidersHorizontal,
   Star,
+  User,
+  UserCircleMinus,
   UserList,
   Vibrate,
 } from "phosphor-react-native";
@@ -247,6 +251,30 @@ const IconScreen = () => {
         <Text>Chevron Down Filled</Text>
         <CaretDown color={colours["accent"]} weight="fill" size={32} />
         <Text></Text>
+      </View>
+
+      <View style={styles.container}>
+        <Text>User</Text>
+        <User color={colours["accent"]} weight="fill" size={32} />
+        <Text>user</Text>
+      </View>
+
+      <View style={styles.container}>
+        <Text>Bar Chart</Text>
+        <ChartBar color={colours["accent"]} weight="fill" size={32} />
+        <Text>chart-bar</Text>
+      </View>
+
+      <View style={styles.container}>
+        <Text>User Minus</Text>
+        <UserCircleMinus color={colours["accent"]} weight="fill" size={32} />
+        <Text>user-circle-minus</Text>
+      </View>
+
+      <View style={styles.container}>
+        <Text>Radioactive</Text>
+        <Radioactive color={colours["accent"]} weight="fill" size={32} />
+        <Text>radioactive</Text>
       </View>
     </ScrollView>
   );
