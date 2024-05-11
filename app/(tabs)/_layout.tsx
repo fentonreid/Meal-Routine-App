@@ -10,34 +10,46 @@ const TabLayout = () => {
           title: "Settings",
         }}
       />
+
       <Tabs.Screen
         name="locale"
         options={{
           title: "Locale",
         }}
       />
+
       <Tabs.Screen
         name="vibrations"
         options={{
           title: "Vibrations",
         }}
       />
+
       <Tabs.Screen
         name="notifications"
         options={{
           title: "Notifications",
         }}
       />
+
       <Tabs.Screen
         name="index"
         options={{
           title: "Text Styles",
         }}
       />
+
       <Tabs.Screen
         name="icon"
         options={{
           title: "Icons",
+        }}
+      />
+
+      <Tabs.Screen
+        name="getstarted"
+        options={{
+          title: "Get Started",
         }}
       />
     </Tabs>
