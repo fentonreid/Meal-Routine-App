@@ -1,11 +1,10 @@
 import { COLOURS } from "@/constants/Colours";
-import SettingsContextProvider from "@/store/SettingsContext";
+import SettingsContextProvider, { SettingsContext } from "@/store/SettingsContext";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import { useColorScheme } from "react-native";
+import { useContext, useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import "@/src/i18n/config.ts";
 
@@ -45,9 +44,9 @@ Notifications.setNotificationHandler({
   },
 });
 
-const RootLayoutNav = () => {
-  const colourScheme = useColorScheme();
-  const colours = COLOURS[colourScheme ?? "dark"];
+const InnerRootLayoutNav = () => {
+  const { colourTheme } = useContext(SettingsContext);
+  const colours = COLOURS[colourTheme];
 
   // Custom styling override light and dark defaults for select properties: https://reactnavigation.org/docs/themes/
   const MyDarkTheme = {
@@ -75,12 +74,18 @@ const RootLayoutNav = () => {
   };
 
   return (
+    <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </ThemeProvider>
+  );
+};
+
+const RootLayoutNav = () => {
+  return (
     <SettingsContextProvider>
-      <ThemeProvider value={colourScheme === "dark" ? MyDarkTheme : MyLightTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-      </ThemeProvider>
+      <InnerRootLayoutNav />
     </SettingsContextProvider>
   );
 };

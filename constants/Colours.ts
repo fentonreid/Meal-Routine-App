@@ -23,7 +23,7 @@ type Colours = {
 const COLOURS_LIGHT: Colours = {
   background: "#F4F4F4",
   darkerBackground: "#EFEFEF",
-  text: "#342E52",
+  text: "#342E53",
   primary: "#66CCC5",
   secondary: "#D9D9D9",
   accent: "#B13E57",

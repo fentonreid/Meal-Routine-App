@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { SettingsContextModel } from "@/models/SettingsContext";
+import { SettingsContextModel, ThemeOptions } from "@/models/SettingsContext";
 import * as Notifications from "expo-notifications";
 import { AvailableLocales } from "@/models/AvailableLocales";
 import { useTranslation } from "react-i18next";
@@ -9,12 +9,12 @@ import { AsyncStorageKeys } from "@/models/AsyncStorageKeys";
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,
   vibrationsEnabled: true,
-  lightThemeEnabled: true,
+  colourTheme: "light",
   getStartedEnabled: true,
 
   toggleNotifications: (_) => {},
   toggleVibrations: (_) => {},
-  toggleLightTheme: (_) => {},
+  toggleColourTheme: (_) => {},
   toggleLocale: (_) => {},
   toggleGetStartedEnabled: (_) => {},
 
@@ -26,7 +26,7 @@ const SettingsContextProvider = ({ children }: any) => {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
   const [vibrationsEnabled, setVibrationsEnabled] = useState<boolean>(true);
-  const [lightThemeEnabled, setLightThemeEnabled] = useState<boolean>(true);
+  const [lightThemeEnabled, setLightThemeEnabled] = useState<ThemeOptions>("light");
   const [getStartedEnabled, setGetStartedEnabled] = useState<boolean>(true);
 
   // Fetch initial values from Async Storage, keep defaults if not present
@@ -39,8 +39,9 @@ const SettingsContextProvider = ({ children }: any) => {
         const storedVibrationsEnabled = await AsyncStorage.getItem(AsyncStorageKeys.VIBRATIONS);
         if (storedVibrationsEnabled) setVibrationsEnabled(storedVibrationsEnabled === "true");
 
-        const storedLightTheme = await AsyncStorage.getItem(AsyncStorageKeys.LIGHTTHEME);
-        if (storedLightTheme) setLightThemeEnabled(storedLightTheme === "true");
+        const storedLightTheme = await AsyncStorage.getItem(AsyncStorageKeys.COLOURTHEME);
+        if (storedLightTheme && (storedLightTheme as ThemeOptions) !== null)
+          setLightThemeEnabled(storedLightTheme as ThemeOptions);
 
         const storedGetStarted = await AsyncStorage.getItem(AsyncStorageKeys.GETSTARTED);
         if (storedGetStarted) setGetStartedEnabled(storedGetStarted === "true");
@@ -76,8 +77,8 @@ const SettingsContextProvider = ({ children }: any) => {
     setVibrationsEnabled(newState);
   };
 
-  const toggleLightTheme = async (newState: boolean) => {
-    await AsyncStorage.setItem(AsyncStorageKeys.LIGHTTHEME, newState ? "true" : "false");
+  const toggleColourTheme = async (newState: ThemeOptions) => {
+    await AsyncStorage.setItem(AsyncStorageKeys.COLOURTHEME, newState);
     setLightThemeEnabled(newState);
   };
 
@@ -91,14 +92,14 @@ const SettingsContextProvider = ({ children }: any) => {
       AsyncStorageKeys.GETSTARTED,
       AsyncStorageKeys.NOTIFICATIONS,
       AsyncStorageKeys.VIBRATIONS,
-      AsyncStorageKeys.LIGHTTHEME,
+      AsyncStorageKeys.COLOURTHEME,
       AsyncStorageKeys.LANGUAGELOCALE,
     ]);
 
     setGetStartedEnabled(true);
     setNotificationsEnabled(true);
     setVibrationsEnabled(true);
-    setLightThemeEnabled(true);
+    setLightThemeEnabled("light");
 
     toggleLocale(AvailableLocales.EN);
   };
@@ -106,12 +107,12 @@ const SettingsContextProvider = ({ children }: any) => {
   const values: SettingsContextModel = {
     notificationEnabled: notificationsEnabled,
     vibrationsEnabled: vibrationsEnabled,
-    lightThemeEnabled: lightThemeEnabled,
+    colourTheme: lightThemeEnabled,
     getStartedEnabled: getStartedEnabled,
 
     toggleNotifications: toggleNotifications,
     toggleVibrations: toggleVibrations,
-    toggleLightTheme: toggleLightTheme,
+    toggleColourTheme: toggleColourTheme,
     toggleGetStartedEnabled: toggledGetStartedEnabled,
 
     resetUserPreferences: resetUserPreferences,

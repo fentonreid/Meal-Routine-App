@@ -37,8 +37,13 @@ const SettingsScreen = () => {
       <View
         style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 12 }}
       >
-        <CT.Text_Heading>LIGHT THEME</CT.Text_Heading>
-        <Switch value={settingsContext.lightThemeEnabled} onValueChange={settingsContext.toggleLightTheme} />
+        <CT.Text_Heading>COLOUR THEME</CT.Text_Heading>
+        <Switch
+          value={settingsContext.colourTheme === "light"}
+          onValueChange={(value) => {
+            settingsContext.toggleColourTheme(value ? "light" : "dark");
+          }}
+        />
       </View>
 
       <View
