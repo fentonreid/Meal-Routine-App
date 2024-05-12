@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Text, View, useColorScheme } from "react-native";
+import { StyleSheet, ScrollView, Text, View } from "react-native";
 import * as Icon from "phosphor-react-native";
 import { COLOURS } from "@/constants/Colours";
 import { useContext } from "react";

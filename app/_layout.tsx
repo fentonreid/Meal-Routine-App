@@ -2,13 +2,25 @@ import { COLOURS } from "@/constants/Colours";
 import SettingsContextProvider, { SettingsContext } from "@/store/SettingsContext";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useContext, useEffect } from "react";
 import * as Notifications from "expo-notifications";
-import "@/src/i18n/config.ts";
+import "@/src/i18n/config";
 
+// Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();
+
+// Setup notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowAlert: true,
+    };
+  },
+});
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -31,20 +43,14 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <SettingsContextProvider>
+      <ColourThemeWrapper />
+    </SettingsContextProvider>
+  );
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => {
-    return {
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-      shouldShowAlert: true,
-    };
-  },
-});
-
-const InnerRootLayoutNav = () => {
+const ColourThemeWrapper = () => {
   const { colourTheme } = useContext(SettingsContext);
   const colours = COLOURS[colourTheme];
 
@@ -75,17 +81,29 @@ const InnerRootLayoutNav = () => {
 
   return (
     <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+      <MainNavigation />
     </ThemeProvider>
   );
 };
 
-const RootLayoutNav = () => {
+const MainNavigation = () => {
+  const router = useRouter();
+
+  const { getStartedEnabled } = useContext(SettingsContext);
+
+  useEffect(() => {
+    if (!getStartedEnabled) {
+      router.replace("/(tabs)/settings");
+    } else {
+      router.replace("/(getstarted)/1_welcome");
+    }
+  }, [getStartedEnabled]);
+
   return (
-    <SettingsContextProvider>
-      <InnerRootLayoutNav />
-    </SettingsContextProvider>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: true, headerTitle: "Get Started" }} />
+      <Stack.Screen name="(getstarted)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
 };

@@ -33,7 +33,7 @@ const TabLayout = () => {
       />
 
       <Tabs.Screen
-        name="index"
+        name="font"
         options={{
           title: "Text Styles",
         }}
@@ -43,13 +43,6 @@ const TabLayout = () => {
         name="icon"
         options={{
           title: "Icons",
-        }}
-      />
-
-      <Tabs.Screen
-        name="getstarted"
-        options={{
-          title: "Get Started",
         }}
       />
     </Tabs>
