@@ -1,7 +1,11 @@
 {
   "en": {
     "translation": {
-      "hello": "Hello, World!"
+      "hello": "Hello, World!",
+      "main_tab_create": "Create",
+      "main_tab_meals": "Meals",
+      "main_tab_diary": "Diary",
+      "main_tab_more": "More"
     }
   }
 }

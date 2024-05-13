@@ -3,6 +3,7 @@ import { Tabs } from "expo-router";
 import { SettingsContext } from "@/store/SettingsContext";
 import { View, StyleSheet, Text } from "react-native";
 import { Book, BugBeetle, DotsThreeCircle, ForkKnife, Heart, ListPlus } from "phosphor-react-native";
+import { useTranslation } from "react-i18next";
 
 const TabBarLabel = ({ focused, label }: any) => {
   const { colours } = useContext(SettingsContext);
@@ -24,6 +25,7 @@ const TabBarLabel = ({ focused, label }: any) => {
 
 const MainTabLayout = () => {
   const { colours } = useContext(SettingsContext);
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -35,8 +37,8 @@ const MainTabLayout = () => {
       <Tabs.Screen
         name="create"
         options={{
-          title: "Create",
-          tabBarLabel: (props) => <TabBarLabel label="Create" {...props} />,
+          title: t("main_tab_create"),
+          tabBarLabel: (props) => <TabBarLabel label={t("main_tab_create")} {...props} />,
           tabBarIcon: ({ color, size }) => (
             <ListPlus weight={color === colours["tabSelected"] ? "fill" : "regular"} color={color} size={size} />
           ),
@@ -45,8 +47,8 @@ const MainTabLayout = () => {
       <Tabs.Screen
         name="meals"
         options={{
-          title: "Meals",
-          tabBarLabel: (props) => <TabBarLabel label="Meals" {...props} />,
+          title: t("main_tab_meals"),
+          tabBarLabel: (props) => <TabBarLabel label={t("main_tab_meals")} {...props} />,
           tabBarIcon: ({ color, size }) => (
             <ForkKnife color={color} weight={color === colours["tabSelected"] ? "fill" : "regular"} size={size} />
           ),
@@ -55,8 +57,8 @@ const MainTabLayout = () => {
       <Tabs.Screen
         name="diary"
         options={{
-          title: "Diary",
-          tabBarLabel: (props) => <TabBarLabel label="Diary" {...props} />,
+          title: t("main_tab_diary"),
+          tabBarLabel: (props) => <TabBarLabel label={t("main_tab_diary")} {...props} />,
           tabBarIcon: ({ color, size }) => (
             <>
               <Book
@@ -79,8 +81,8 @@ const MainTabLayout = () => {
       <Tabs.Screen
         name="more"
         options={{
-          title: "More",
-          tabBarLabel: (props) => <TabBarLabel label="More" {...props} />,
+          title: t("main_tab_more"),
+          tabBarLabel: (props) => <TabBarLabel label={t("main_tab_more")} {...props} />,
           tabBarIcon: ({ color, size }) => (
             <DotsThreeCircle weight={color === colours["tabSelected"] ? "fill" : "regular"} color={color} size={size} />
           ),

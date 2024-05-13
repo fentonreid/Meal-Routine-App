@@ -75,16 +75,17 @@ const ColourThemeWrapper = () => {
   };
 
   return (
-    <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
+    <>
       <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
-      <MainNavigation />
-    </ThemeProvider>
+      <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
+        <MainNavigation />
+      </ThemeProvider>
+    </>
   );
 };
 
 const MainNavigation = () => {
   const router = useRouter();
-
   const { getStartedEnabled } = useContext(SettingsContext);
 
   useEffect(() => {

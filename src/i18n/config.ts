@@ -7,7 +7,7 @@ i18n.use(initReactI18next).init({
   lng: "en",
   compatibilityJSON: "v3",
   fallbackLng: "en",
-  debug: false,
+  debug: true,
   resources: {
     ...en,
     ...fr,
