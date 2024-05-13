@@ -1,52 +1,22 @@
 import React from "react";
 import { Tabs } from "expo-router";
 
-const TabLayout = () => {
+const MainTabLayout = () => {
   return (
-    <Tabs screenOptions={{}}>
+    <Tabs>
+      <Tabs.Screen name="create" options={{ title: "Create" }} />
+      <Tabs.Screen name="meals" options={{ title: "Meals" }} />
+      <Tabs.Screen name="diary" options={{ title: "Diary" }} />
+      <Tabs.Screen name="more" options={{ title: "More" }} />
       <Tabs.Screen
-        name="settings"
+        name="(debug)"
         options={{
-          title: "Settings",
-        }}
-      />
-
-      <Tabs.Screen
-        name="locale"
-        options={{
-          title: "Locale",
-        }}
-      />
-
-      <Tabs.Screen
-        name="vibrations"
-        options={{
-          title: "Vibrations",
-        }}
-      />
-
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: "Notifications",
-        }}
-      />
-
-      <Tabs.Screen
-        name="font"
-        options={{
-          title: "Text Styles",
-        }}
-      />
-
-      <Tabs.Screen
-        name="icon"
-        options={{
-          title: "Icons",
+          headerShown: false,
+          title: "DEBUG",
         }}
       />
     </Tabs>
   );
 };
 
-export default TabLayout;
+export default MainTabLayout;

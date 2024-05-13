@@ -63,8 +63,6 @@ const ColourThemeWrapper = () => {
       background: colours["background"],
       card: colours["background"],
       text: colours["mainHeading"],
-      // border: string,
-      // notification: string
     },
   };
 
@@ -75,8 +73,6 @@ const ColourThemeWrapper = () => {
       background: colours["background"],
       card: colours["background"],
       text: colours["mainHeading"],
-      // border: string,
-      // notification: string
     },
   };
 
@@ -95,7 +91,7 @@ const MainNavigation = () => {
 
   useEffect(() => {
     if (!getStartedEnabled) {
-      router.replace("/(tabs)/settings");
+      router.replace("/(tabs)/more");
     } else {
       router.replace("/(getstarted)/1_welcome");
     }
