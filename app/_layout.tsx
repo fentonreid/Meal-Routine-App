@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useContext, useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import "@/src/i18n/config";
+import { StatusBar } from "expo-status-bar";
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -81,6 +82,7 @@ const ColourThemeWrapper = () => {
 
   return (
     <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
+      <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
       <MainNavigation />
     </ThemeProvider>
   );
