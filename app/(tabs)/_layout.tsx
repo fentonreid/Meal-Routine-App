@@ -40,7 +40,12 @@ const MainTabLayout = () => {
           title: t("main_tab_create"),
           tabBarLabel: (props) => <TabBarLabel label={t("main_tab_create")} {...props} />,
           tabBarIcon: ({ color, size }) => (
-            <ListPlus weight={color === colours["tabSelected"] ? "fill" : "regular"} color={color} size={size} />
+            <ListPlus
+              weight={color === colours["tabSelected"] ? "fill" : "regular"}
+              color={color}
+              size={size}
+              style={{ marginTop: 6 }}
+            />
           ),
         }}
       />
@@ -50,7 +55,12 @@ const MainTabLayout = () => {
           title: t("main_tab_meals"),
           tabBarLabel: (props) => <TabBarLabel label={t("main_tab_meals")} {...props} />,
           tabBarIcon: ({ color, size }) => (
-            <ForkKnife color={color} weight={color === colours["tabSelected"] ? "fill" : "regular"} size={size} />
+            <ForkKnife
+              color={color}
+              weight={color === colours["tabSelected"] ? "fill" : "regular"}
+              size={size}
+              style={{ marginTop: 6 }}
+            />
           ),
         }}
       />
@@ -65,7 +75,7 @@ const MainTabLayout = () => {
                 weight={color === colours["tabSelected"] ? "fill" : "regular"}
                 color={color}
                 size={size * 1.1}
-                style={{ marginTop: 4 }}
+                style={{ marginTop: 6 }}
               />
               <View style={styles.heartContainer}>
                 <Heart
@@ -84,7 +94,12 @@ const MainTabLayout = () => {
           title: t("main_tab_more"),
           tabBarLabel: (props) => <TabBarLabel label={t("main_tab_more")} {...props} />,
           tabBarIcon: ({ color, size }) => (
-            <DotsThreeCircle weight={color === colours["tabSelected"] ? "fill" : "regular"} color={color} size={size} />
+            <DotsThreeCircle
+              weight={color === colours["tabSelected"] ? "fill" : "regular"}
+              color={color}
+              size={size * 1.15}
+              style={{ marginTop: 6 }}
+            />
           ),
         }}
       />
@@ -94,7 +109,12 @@ const MainTabLayout = () => {
           headerShown: false,
           tabBarLabel: (props) => <TabBarLabel label="DEBUG" {...props} />,
           tabBarIcon: ({ color, size }) => (
-            <BugBeetle weight={color === colours["tabSelected"] ? "fill" : "regular"} color={color} size={size} />
+            <BugBeetle
+              weight={color === colours["tabSelected"] ? "fill" : "regular"}
+              color={color}
+              size={size}
+              style={{ marginTop: 6 }}
+            />
           ),
         }}
       />
@@ -107,7 +127,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginTop: -5, // Adjust to center the heart vertically
+    marginTop: -4, // Adjust to center the heart vertically
     marginLeft: -5, // Adjust to center the heart horizontally
   },
 });
