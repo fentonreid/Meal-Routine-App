@@ -1,26 +1,7 @@
-enum COLOR_SCHEME {
-  LIGHT = "light",
-  DARK = "dark",
-}
+import { ThemeColours } from "@/models/ThemeColours";
+import { COLOR_SCHEME } from "@/models/enums/ColourTheme";
 
-type Colours = {
-  background: string;
-  darkerBackground: string;
-  text: string;
-  primary: string;
-  secondary: string;
-  accent: string;
-  primaryButton: string;
-  accentButton: string;
-  buttonText: string;
-  mainHeading: string;
-  light: string;
-  tabSelected: string;
-  tabUnselected: string;
-  darkPrimary: string;
-};
-
-const COLOURS_LIGHT: Colours = {
+const COLOURS_LIGHT: ThemeColours = {
   background: "#F4F4F4",
   darkerBackground: "#EFEFEF",
   text: "#342E53",
@@ -37,7 +18,7 @@ const COLOURS_LIGHT: Colours = {
   darkPrimary: "#289B93",
 };
 
-const COLOURS_DARK: Colours = {
+const COLOURS_DARK: ThemeColours = {
   background: "#130E17",
   darkerBackground: "#2A282B",
   text: "#615697",

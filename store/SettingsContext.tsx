@@ -1,16 +1,34 @@
 import { createContext, useEffect, useState } from "react";
-import { SettingsContextModel, ThemeOptions } from "@/models/SettingsContext";
+import { SettingsContextModel } from "@/models/SettingsContext";
+import { ThemeOptions } from "@/models/ThemeOptions";
 import * as Notifications from "expo-notifications";
 import { AvailableLocales } from "@/models/AvailableLocales";
 import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AsyncStorageKeys } from "@/models/AsyncStorageKeys";
+import { COLOURS } from "@/constants/Colours";
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,
   vibrationsEnabled: true,
   colourTheme: "light",
   getStartedEnabled: true,
+  colours: {
+    background: "#F4F4F4",
+    darkerBackground: "#EFEFEF",
+    text: "#342E53",
+    primary: "#66CCC5",
+    secondary: "#D9D9D9",
+    accent: "#B13E57",
+    primaryButton: "#66CCC5",
+    accentButton: "#B13E57",
+    buttonText: "#FFFFFF",
+    mainHeading: "#000000",
+    light: "#FFFFFF",
+    tabSelected: "#B13E57",
+    tabUnselected: "#3F3F3F",
+    darkPrimary: "#289B93",
+  },
 
   toggleNotifications: (_) => {},
   toggleVibrations: (_) => {},
@@ -28,6 +46,8 @@ const SettingsContextProvider = ({ children }: any) => {
   const [vibrationsEnabled, setVibrationsEnabled] = useState<boolean>(true);
   const [lightThemeEnabled, setLightThemeEnabled] = useState<ThemeOptions>("light");
   const [getStartedEnabled, setGetStartedEnabled] = useState<boolean>(true);
+
+  const colours = COLOURS[lightThemeEnabled];
 
   // Fetch initial values from Async Storage, keep defaults if not present
   useEffect(() => {
@@ -109,6 +129,7 @@ const SettingsContextProvider = ({ children }: any) => {
     vibrationsEnabled: vibrationsEnabled,
     colourTheme: lightThemeEnabled,
     getStartedEnabled: getStartedEnabled,
+    colours: colours,
 
     toggleNotifications: toggleNotifications,
     toggleVibrations: toggleVibrations,

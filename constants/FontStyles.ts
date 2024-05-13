@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-const FontStyles = StyleSheet.create({
+export const FontStyles = StyleSheet.create({
   textInput: {
     fontSize: 10,
     fontFamily: "Poppins",

@@ -1,4 +1,3 @@
-import { COLOURS } from "@/constants/Colours";
 import SettingsContextProvider, { SettingsContext } from "@/store/SettingsContext";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -52,8 +51,7 @@ export default function RootLayout() {
 }
 
 const ColourThemeWrapper = () => {
-  const { colourTheme } = useContext(SettingsContext);
-  const colours = COLOURS[colourTheme];
+  const { colours, colourTheme } = useContext(SettingsContext);
 
   // Custom styling override light and dark defaults for select properties: https://reactnavigation.org/docs/themes/
   const MyDarkTheme = {

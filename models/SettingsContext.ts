@@ -1,10 +1,13 @@
 import { AvailableLocales } from "@/models/AvailableLocales";
+import { ThemeColours } from "@/models/ThemeColours";
+import { ThemeOptions } from "@/models/ThemeOptions";
 
 export interface SettingsContextModel {
   notificationEnabled: boolean;
   vibrationsEnabled: boolean;
   colourTheme: "dark" | "light";
   getStartedEnabled: boolean;
+  colours: ThemeColours;
 
   toggleNotifications: (newState: boolean) => void;
   toggleVibrations: (newState: boolean) => void;
@@ -14,5 +17,3 @@ export interface SettingsContextModel {
 
   resetUserPreferences: () => void;
 }
-
-export type ThemeOptions = "dark" | "light";
