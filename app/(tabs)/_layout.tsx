@@ -4,6 +4,7 @@ import { SettingsContext } from "@/store/SettingsContext";
 import { View, StyleSheet, Text } from "react-native";
 import { Book, BugBeetle, DotsThreeCircle, ForkKnife, Heart, ListPlus } from "phosphor-react-native";
 import { useTranslation } from "react-i18next";
+import { FontStyles } from "@/constants/FontStyles";
 
 const TabBarLabel = ({ focused, label }: any) => {
   const { colours } = useContext(SettingsContext);
@@ -32,6 +33,9 @@ const MainTabLayout = () => {
       screenOptions={{
         tabBarActiveTintColor: colours["tabSelected"],
         tabBarInactiveTintColor: colours["tabUnselected"],
+        headerTitleAlign: "center",
+        headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
+        headerShadowVisible: false,
       }}
     >
       <Tabs.Screen

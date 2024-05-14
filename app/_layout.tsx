@@ -9,6 +9,8 @@ import * as Notifications from "expo-notifications";
 import "@/src/i18n/config";
 import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
+import FontStyles from "@/constants/FontStyles";
+import { COLOURS } from "@/constants/Colours";
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -98,7 +100,7 @@ const ColourThemeWrapper = () => {
 
 const MainNavigation = () => {
   const router = useRouter();
-  const { getStartedEnabled } = useContext(SettingsContext);
+  const { getStartedEnabled, colours } = useContext(SettingsContext);
 
   useEffect(() => {
     if (!getStartedEnabled) {
@@ -109,7 +111,13 @@ const MainNavigation = () => {
   }, [getStartedEnabled]);
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
+        headerTitleAlign: "center",
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen name="index" options={{ headerShown: true, headerTitle: "Get Started" }} />
       <Stack.Screen name="(getstarted)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

@@ -1,19 +1,18 @@
 import React, { useContext } from "react";
 import { Stack } from "expo-router";
-import { COLOURS } from "@/constants/Colours";
 import { SettingsContext } from "@/store/SettingsContext";
+import FontStyles from "@/constants/FontStyles";
 
 const StackLayout = () => {
-  const { colourTheme } = useContext(SettingsContext);
-  const colours = COLOURS[colourTheme];
+  const { colours } = useContext(SettingsContext);
 
   return (
     <Stack
       screenOptions={{
         headerTintColor: colours["accent"],
-        headerTitleStyle: { color: colours["mainHeading"] },
         headerTitleAlign: "center",
         headerShadowVisible: false,
+        headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
       }}
     >
       <Stack.Screen
