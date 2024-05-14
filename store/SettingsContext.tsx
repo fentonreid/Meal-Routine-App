@@ -7,12 +7,16 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AsyncStorageKeys } from "@/models/AsyncStorageKeys";
 import { COLOURS } from "@/constants/Colours";
+import NotificationManager from "@/managers/NotificationManager";
+import VibrationManager from "@/managers/VibrationManager";
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,
   vibrationsEnabled: true,
   colourTheme: "light",
   getStartedEnabled: true,
+  notificationManager: null,
+  vibrationManager: null,
   colours: {
     background: "#F4F4F4",
     darkerBackground: "#EFEFEF",
@@ -48,6 +52,8 @@ const SettingsContextProvider = ({ children }: any) => {
   const [getStartedEnabled, setGetStartedEnabled] = useState<boolean>(true);
 
   const colours = COLOURS[lightThemeEnabled];
+  const notificationManager = NotificationManager();
+  const vibrationManager = VibrationManager();
 
   // Fetch initial values from Async Storage, keep defaults if not present
   useEffect(() => {
@@ -130,6 +136,8 @@ const SettingsContextProvider = ({ children }: any) => {
     colourTheme: lightThemeEnabled,
     getStartedEnabled: getStartedEnabled,
     colours: colours,
+    notificationManager: notificationManager,
+    vibrationManager: vibrationManager,
 
     toggleNotifications: toggleNotifications,
     toggleVibrations: toggleVibrations,

@@ -2,10 +2,10 @@ import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import * as CT from "@/components/TextStyles";
 import VibrationManager from "@/managers/VibrationManager";
 import * as Haptics from "expo-haptics";
-import { useContext } from "react";
+import { FC, useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
 
-const VibrationsScreen = () => {
+const VibrationsScreen: FC = () => {
   const { vibrationsEnabled, vibrationManager } = useContext(SettingsContext);
 
   return (

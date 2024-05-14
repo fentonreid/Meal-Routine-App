@@ -8,6 +8,8 @@ export interface SettingsContextModel {
   colourTheme: "dark" | "light";
   getStartedEnabled: boolean;
   colours: ThemeColours;
+  notificationManager: any;
+  vibrationManager: any;
 
   toggleNotifications: (newState: boolean) => void;
   toggleVibrations: (newState: boolean) => void;
