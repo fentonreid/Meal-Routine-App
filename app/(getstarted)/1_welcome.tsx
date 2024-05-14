@@ -16,24 +16,22 @@ const StackScreen1 = () => {
       <Text_SuperHeader>{t("getstarted_1_welcometext")}</Text_SuperHeader>
       <Image
         source={require("@/assets/images/getstarted/frogWaiter.png")}
-        style={{ flex: 3, resizeMode: "contain", alignSelf: "center" }}
+        style={{ flex: 3, resizeMode: "contain", alignSelf: "center", transform: [{ scaleX: -1 }] }}
       />
       <View style={{ flex: 1 }}>
         <Text_MainHeading>
           {t("getstarted_1_mynameis")}
           <Text_MainHeading style={{ color: colours["accent"] }}> {t("getstarted_1_frogname")}</Text_MainHeading>
         </Text_MainHeading>
-        <Text_Text style={{ marginLeft: 12 }}>{t("getstarted_1_slogan")}</Text_Text>
+        <Text_Text style={{ paddingLeft: 12 }}>{t("getstarted_1_slogan")}</Text_Text>
       </View>
-      <View style={{ flex: 2, marginHorizontal: 24 }}>
-        <Button_PrimaryWide
-          onPress={() => {
-            router.push("/(getstarted)/2_summary");
-          }}
-        >
-          {t("getstarted_1_welcomebuttontext")}
-        </Button_PrimaryWide>
-      </View>
+      <Button_PrimaryWide
+        onPress={() => {
+          router.push("/(getstarted)/2_summary");
+        }}
+      >
+        {t("getstarted_1_welcomebuttontext")}
+      </Button_PrimaryWide>
     </View>
   );
 };

@@ -14,29 +14,33 @@ const StackScreen2 = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.innerContainer}>
-        <View style={styles.headerRow}>
-          <CalendarBlank color={colours["darkPrimary"]} weight="fill" size={32} />
-          <Text_Heading>{t("getstarted_2_mealroutinesheadertitle")}</Text_Heading>
-        </View>
-        <Text_Text>{t("getstarted_2_mealroutinetext")}</Text_Text>
-      </View>
-      <View>
+      <View style={{ flex: 1, justifyContent: "space-around", paddingBottom: 32 }}>
         <View style={styles.innerContainer}>
           <View style={styles.headerRow}>
-            <ForkKnife color={colours["darkPrimary"]} weight="fill" size={32} />
-            <Text_Heading>{t("getstarted_2_managemealsheadertitle")}</Text_Heading>
+            <CalendarBlank color={colours["darkPrimary"]} weight="fill" size={32} />
+            <Text_Heading>{t("getstarted_2_mealroutinesheadertitle")}</Text_Heading>
           </View>
-          <Text_Text>{t("getstarted_2_managemealstext")}</Text_Text>
+          <Text_Text>{t("getstarted_2_mealroutinetext")}</Text_Text>
         </View>
-      </View>
-      <View>
-        <View style={styles.innerContainer}>
-          <View style={styles.headerRow}>
-            <NotePencil color={colours["darkPrimary"]} weight="fill" size={32} />
-            <Text_Heading>{t("getstarted_2_diaryheadertitle")}</Text_Heading>
+
+        <View>
+          <View style={styles.innerContainer}>
+            <View style={styles.headerRow}>
+              <ForkKnife color={colours["darkPrimary"]} weight="fill" size={32} />
+              <Text_Heading>{t("getstarted_2_managemealsheadertitle")}</Text_Heading>
+            </View>
+            <Text_Text>{t("getstarted_2_managemealstext")}</Text_Text>
           </View>
-          <Text_Text>{t("getstarted_2_diarytext")}</Text_Text>
+        </View>
+
+        <View>
+          <View style={styles.innerContainer}>
+            <View style={styles.headerRow}>
+              <NotePencil color={colours["darkPrimary"]} weight="fill" size={32} />
+              <Text_Heading>{t("getstarted_2_diaryheadertitle")}</Text_Heading>
+            </View>
+            <Text_Text>{t("getstarted_2_diarytext")}</Text_Text>
+          </View>
         </View>
       </View>
 
@@ -54,19 +58,15 @@ const StackScreen2 = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "space-evenly",
     padding: 24,
-    marginBottom: 24,
+    marginBottom: 12,
   },
 
   headerRow: {
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
     gap: 12,
   },
-
-  icon: {},
 
   innerContainer: {
     gap: 8,
