@@ -20,11 +20,3 @@ export default function FontScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: "80%",
-  },
-});

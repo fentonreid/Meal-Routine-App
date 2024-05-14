@@ -55,6 +55,12 @@ const DebugTabLayout = () => {
           title: "Icons",
         }}
       />
+      <Tabs.Screen
+        name="button"
+        options={{
+          title: "Button",
+        }}
+      />
     </Tabs>
   );
 };

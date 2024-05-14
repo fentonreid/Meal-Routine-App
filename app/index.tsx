@@ -1,5 +1,5 @@
 import { View } from "react-native";
 
-const GetStartedScreen = () => <View></View>;
+const IndexScreen = () => <View></View>;
 
-export default GetStartedScreen;
+export default IndexScreen;

@@ -43,7 +43,7 @@ export const Text_Text = (props: TextProps) => {
   const { colourTheme } = useContext(SettingsContext);
   const colours = COLOURS[colourTheme];
 
-  return <Text style={[ts.mealCardTitle, { color: colours["text"] }, props.style]}>{props.children}</Text>;
+  return <Text style={[ts.text, { color: colours["text"] }, props.style]}>{props.children}</Text>;
 };
 
 export const Text_ListText = (props: TextProps) => {

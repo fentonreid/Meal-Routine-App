@@ -2,9 +2,11 @@ import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import * as CT from "@/components/TextStyles";
 import { useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
+import NotificationManager from "@/managers/NotificationManager";
 
 const VibrationsScreen = () => {
-  const { notificationEnabled, notificationManager } = useContext(SettingsContext);
+  const { notificationEnabled } = useContext(SettingsContext);
+  const notificationManager = NotificationManager();
 
   return (
     <ScrollView>

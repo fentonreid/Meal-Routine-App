@@ -1,5 +1,5 @@
-import * as Haptics from "expo-haptics";
 import { SettingsContext } from "@/store/SettingsContext";
+import * as Haptics from "expo-haptics";
 import { useContext } from "react";
 
 const VibrationManager = () => {

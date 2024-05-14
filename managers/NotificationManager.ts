@@ -1,6 +1,6 @@
 import { SettingsContext } from "@/store/SettingsContext";
-import { useContext } from "react";
 import * as Notifications from "expo-notifications";
+import { useContext } from "react";
 
 const NotificationManager = () => {
   const { notificationEnabled } = useContext(SettingsContext);

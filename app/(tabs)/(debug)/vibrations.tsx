@@ -5,8 +5,9 @@ import * as Haptics from "expo-haptics";
 import { FC, useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
 
-const VibrationsScreen: FC = () => {
-  const { vibrationsEnabled, vibrationManager } = useContext(SettingsContext);
+const VibrationsScreen = () => {
+  const { vibrationsEnabled } = useContext(SettingsContext);
+  const vibrationManager = VibrationManager();
 
   return (
     <ScrollView>

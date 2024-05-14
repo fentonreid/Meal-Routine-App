@@ -27,7 +27,7 @@ export const FontStyles = StyleSheet.create({
   },
 
   text: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins",
   },
 

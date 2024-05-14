@@ -10,7 +10,6 @@ import "@/src/i18n/config";
 import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
 import FontStyles from "@/constants/FontStyles";
-import { COLOURS } from "@/constants/Colours";
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();
