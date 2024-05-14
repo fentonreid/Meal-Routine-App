@@ -63,7 +63,7 @@ const ColourThemeWrapper = () => {
     };
 
     changeBackgroundColour();
-  }, []);
+  }, [colours]);
 
   // Custom styling override light and dark defaults for select properties: https://reactnavigation.org/docs/themes/
   const MyDarkTheme = {
