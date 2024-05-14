@@ -6,9 +6,7 @@ import { useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
 
 const VibrationsScreen = () => {
-  const { vibrationsEnabled } = useContext(SettingsContext);
-
-  const vibrationManager = VibrationManager();
+  const { vibrationsEnabled, vibrationManager } = useContext(SettingsContext);
 
   return (
     <ScrollView>
