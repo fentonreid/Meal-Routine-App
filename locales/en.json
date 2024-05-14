@@ -8,8 +8,20 @@
       "main_tab_diary": "Diary",
       "main_tab_more": "More",
 
-      "getstarted_welcomebuttontext": "Get Started",
-      "getstarted_nextbuttontext": "Next"
+      "getstarted_nextbuttontext": "Next",
+
+      "getstarted_1_welcometext": "Welcome",
+      "getstarted_1_mynameis": "My name is",
+      "getstarted_1_welcomebuttontext": "Get Started",
+      "getstarted_1_frogname": "Froggo",
+      "getstarted_1_slogan": "Your meal routine and diary companion",
+
+      "getstarted_2_mealroutinesheadertitle": "Meal Routines",
+      "getstarted_2_mealroutinetext": "Create and view meal routines. Add reviews for each meal with ratings, descriptions, images and more...",
+      "getstarted_2_managemealsheadertitle": "Manage Meals",
+      "getstarted_2_managemealstext": "Create and view meals with over 50 to get you started. View overall ratings, ingredients, steps to make and more...",
+      "getstarted_2_diaryheadertitle": "Meal Routine Diary",
+      "getstarted_2_diarytext": "View all previously created meal routines. Reflect and reminisce on awesome past meals. Easily sort by effort, taste and more..."
     }
   }
 }

@@ -27,6 +27,7 @@ Notifications.setNotificationHandler({
 
 export default function RootLayout() {
   const [loaded] = useFonts({
+    Poppins_Light: require("../assets/fonts/Poppins/Poppins-Light.ttf"),
     Poppins: require("../assets/fonts/Poppins/Poppins-Medium.ttf"),
     Poppins_Bold: require("../assets/fonts/Poppins/Poppins-Bold.ttf"),
     Poppins_SemiBold: require("../assets/fonts/Poppins/Poppins-SemiBold.ttf"),

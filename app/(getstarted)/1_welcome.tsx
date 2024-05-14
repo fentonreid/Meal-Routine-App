@@ -13,24 +13,25 @@ const StackScreen1 = () => {
 
   return (
     <View style={styles.container}>
-      <Text_SuperHeader style={{ flex: 1 }}>Welcome</Text_SuperHeader>
+      <Text_SuperHeader>{t("getstarted_1_welcometext")}</Text_SuperHeader>
       <Image
-        source={require("@/assets/images/frogWaiter.png")}
+        source={require("@/assets/images/getstarted/frogWaiter.png")}
         style={{ flex: 3, resizeMode: "contain", alignSelf: "center" }}
       />
       <View style={{ flex: 1 }}>
         <Text_MainHeading>
-          My name is <Text_MainHeading style={{ color: colours["accent"] }}>Froggo</Text_MainHeading>
+          {t("getstarted_1_mynameis")}
+          <Text_MainHeading style={{ color: colours["accent"] }}> {t("getstarted_1_frogname")}</Text_MainHeading>
         </Text_MainHeading>
-        <Text_Text style={{ marginLeft: 12 }}>Your meal routine and diary companion</Text_Text>
+        <Text_Text style={{ marginLeft: 12 }}>{t("getstarted_1_slogan")}</Text_Text>
       </View>
-      <View style={{ flex: 2 }}>
+      <View style={{ flex: 2, marginHorizontal: 24 }}>
         <Button_PrimaryWide
           onPress={() => {
             router.push("/(getstarted)/2_summary");
           }}
         >
-          {t("getstarted_welcomebuttontext")}
+          {t("getstarted_1_welcomebuttontext")}
         </Button_PrimaryWide>
       </View>
     </View>
@@ -41,6 +42,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 24,
     flex: 1,
+    gap: 12,
   },
 });
 
