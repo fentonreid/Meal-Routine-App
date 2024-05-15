@@ -5,12 +5,15 @@ import { useRouter } from "expo-router";
 import { CalendarBlank, ForkKnife, NotePencil } from "phosphor-react-native";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Image, Dimensions } from "react-native";
 
 const StackScreen2 = () => {
   const router = useRouter();
   const { t } = useTranslation();
   const { colours } = useContext(SettingsContext);
+
+  const screenWidth = Dimensions.get("window").width;
+  const screenHeight = Dimensions.get("window").height;
 
   return (
     <View style={styles.container}>
@@ -51,6 +54,21 @@ const StackScreen2 = () => {
       >
         {t("getstarted_nextbuttontext")}
       </Button_AccentThin>
+
+      <View
+        style={{ position: "absolute", bottom: 0, left: 0, right: 0, justifyContent: "center", alignItems: "center" }}
+      >
+        <Image
+          source={require("@/assets/images/getstarted/2.png")}
+          style={{
+            bottom: -(screenHeight / 19),
+            left: 0,
+            right: 0,
+            height: 62,
+            resizeMode: "contain",
+          }}
+        />
+      </View>
     </View>
   );
 };

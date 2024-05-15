@@ -38,13 +38,6 @@ const ColourThemeWrapper = () => {
 
   // Set navigation bottom bar -- setup in useEffect so I can await
   // Todo: Unsure if this is valid/needed for IOS, targetting Android only for this snippet
-  useEffect(() => {
-    const changeBackgroundColour = async () => {
-      if (Platform.OS === "android") NavigationBar.setBackgroundColorAsync(colours["background"]);
-    };
-
-    changeBackgroundColour();
-  }, [colours]);
 
   // Custom styling override light and dark defaults for select properties: https://reactnavigation.org/docs/themes/
   const MyDarkTheme = {
@@ -102,6 +95,14 @@ const MainNavigation = () => {
       SplashScreen.hideAsync();
     }
   }, [loaded, getStartedEnabled]);
+
+  useEffect(() => {
+    const changeBackgroundColour = async () => {
+      if (Platform.OS === "android") NavigationBar.setBackgroundColorAsync(colours["background"]);
+    };
+
+    changeBackgroundColour();
+  }, [colours]);
 
   if (!loaded) return null;
 

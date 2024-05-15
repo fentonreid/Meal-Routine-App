@@ -5,12 +5,15 @@ import { useRouter } from "expo-router";
 import { ArrowRight } from "phosphor-react-native";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Image, Dimensions } from "react-native";
 
 const StackScreen4 = () => {
   const router = useRouter();
   const { t } = useTranslation();
   const { colours } = useContext(SettingsContext);
+
+  const screenWidth = Dimensions.get("window").width;
+  const screenHeight = Dimensions.get("window").height;
 
   return (
     <View style={styles.container}>
@@ -49,6 +52,17 @@ const StackScreen4 = () => {
       >
         {t("getstarted_nextbuttontext")}
       </Button_AccentThin>
+
+      <Image
+        source={require("@/assets/images/getstarted/4.png")}
+        style={{
+          position: "absolute",
+          top: screenHeight / 1.8,
+          left: -(screenWidth / 6),
+          height: 62,
+          resizeMode: "contain",
+        }}
+      />
     </View>
   );
 };
