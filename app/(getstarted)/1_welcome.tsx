@@ -1,8 +1,8 @@
 import { Button_PrimaryWide } from "@/components/ButtonStyles";
 import { Text_MainHeading, Text_SuperHeader, Text_Text } from "@/components/TextStyles";
 import { SettingsContext } from "@/store/SettingsContext";
-import { useRouter } from "expo-router";
-import { useContext } from "react";
+import { SplashScreen, useRouter } from "expo-router";
+import { useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image } from "react-native";
 

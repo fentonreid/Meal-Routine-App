@@ -1,10 +1,10 @@
 import SettingsContextProvider, { SettingsContext } from "@/store/SettingsContext";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, useRouter } from "expo-router";
+import { Slot, Stack, useRootNavigationState, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useContext, useEffect } from "react";
-import { Platform } from "react-native";
+import { useContext, useEffect, useLayoutEffect, useState } from "react";
+import { Platform, View } from "react-native";
 import * as Notifications from "expo-notifications";
 import "@/src/i18n/config";
 import { StatusBar } from "expo-status-bar";
@@ -26,27 +26,6 @@ Notifications.setNotificationHandler({
 });
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
-    Poppins_Light: require("../assets/fonts/Poppins/Poppins-Light.ttf"),
-    Poppins: require("../assets/fonts/Poppins/Poppins-Medium.ttf"),
-    Poppins_Bold: require("../assets/fonts/Poppins/Poppins-Bold.ttf"),
-    Poppins_SemiBold: require("../assets/fonts/Poppins/Poppins-SemiBold.ttf"),
-
-    Vollkorn: require("../assets/fonts/Vollkorn/Vollkorn-Medium.ttf"),
-    Vollkorn_Bold: require("../assets/fonts/Vollkorn/Vollkorn-Bold.ttf"),
-    Vollkorn_ExtraBold: require("../assets/fonts/Vollkorn/Vollkorn-ExtraBold.ttf"),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
   return (
     <SettingsContextProvider>
       <ColourThemeWrapper />
@@ -90,7 +69,6 @@ const ColourThemeWrapper = () => {
 
   return (
     <>
-      <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
       <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
         <MainNavigation />
       </ThemeProvider>
@@ -100,27 +78,47 @@ const ColourThemeWrapper = () => {
 
 const MainNavigation = () => {
   const router = useRouter();
-  const { getStartedEnabled, colours } = useContext(SettingsContext);
+  const { getStartedEnabled, colours, colourTheme } = useContext(SettingsContext);
+
+  const [loaded] = useFonts({
+    Poppins_Light: require("../assets/fonts/Poppins/Poppins-Light.ttf"),
+    Poppins: require("../assets/fonts/Poppins/Poppins-Medium.ttf"),
+    Poppins_Bold: require("../assets/fonts/Poppins/Poppins-Bold.ttf"),
+    Poppins_SemiBold: require("../assets/fonts/Poppins/Poppins-SemiBold.ttf"),
+
+    Vollkorn: require("../assets/fonts/Vollkorn/Vollkorn-Medium.ttf"),
+    Vollkorn_Bold: require("../assets/fonts/Vollkorn/Vollkorn-Bold.ttf"),
+    Vollkorn_ExtraBold: require("../assets/fonts/Vollkorn/Vollkorn-ExtraBold.ttf"),
+  });
 
   useEffect(() => {
-    if (!getStartedEnabled) {
-      router.replace("/(tabs)/create");
-    } else {
-      router.replace("/(getstarted)/1_welcome");
+    if (loaded) {
+      if (!getStartedEnabled) {
+        router.replace("/(tabs)/create");
+      } else {
+        router.replace("/(getstarted)/1_welcome");
+      }
+
+      SplashScreen.hideAsync();
     }
-  }, [getStartedEnabled]);
+  }, [loaded, getStartedEnabled]);
+
+  if (!loaded) return null;
 
   return (
-    <Stack
-      screenOptions={{
-        headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
-        headerTitleAlign: "center",
-        headerShadowVisible: false,
-      }}
-    >
-      <Stack.Screen name="index" options={{ headerShown: true, headerTitle: "Get Started" }} />
-      <Stack.Screen name="(getstarted)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
+          headerTitleAlign: "center",
+          headerShadowVisible: false,
+        }}
+      >
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(getstarted)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </>
   );
 };

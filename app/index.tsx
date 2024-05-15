@@ -1,5 +1,8 @@
+import { Stack } from "expo-router";
 import { View } from "react-native";
 
-const IndexScreen = () => <View></View>;
+const IndexScreen = () => {
+  return null;
+};
 
 export default IndexScreen;

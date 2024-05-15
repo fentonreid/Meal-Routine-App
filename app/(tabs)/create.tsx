@@ -1,3 +1,5 @@
+import { SplashScreen } from "expo-router";
+import { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 const CreateScreen = () => {
