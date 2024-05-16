@@ -11,8 +11,6 @@ const StackScreen3 = () => {
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
 
-  console.log(screenHeight, screenWidth);
-
   return (
     <View style={styles.container}>
       <View style={{ flex: 1, justifyContent: "space-around", paddingBottom: 140 }}>
