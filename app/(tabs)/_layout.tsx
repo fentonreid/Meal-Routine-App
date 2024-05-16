@@ -95,7 +95,7 @@ const MainTabLayout = () => {
       <Tabs.Screen
         name="more"
         options={{
-          title: t("main_tab_moreheader"),
+          headerShown: false,
           tabBarLabel: (props) => <TabBarLabel label={t("main_tab_more")} {...props} />,
           tabBarIcon: ({ color, size }) => (
             <DotsThreeCircle

@@ -20,7 +20,7 @@ const MoreScreen = () => {
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,
           OnPress: () => {
-            router.push("(debug)/icon");
+            router.push("/more/settings");
           },
         }}
       />
@@ -31,7 +31,7 @@ const MoreScreen = () => {
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,
           OnPress: () => {
-            router.push("(debug)/font");
+            router.push("/more/importexport");
           },
         }}
       />
@@ -42,7 +42,7 @@ const MoreScreen = () => {
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,
           OnPress: () => {
-            router.push("(debug)/locale");
+            router.push("/more/manageuserdata");
           },
         }}
       />
