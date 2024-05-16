@@ -7,15 +7,15 @@ const MoreScreen = () => {
 
   return (
     <View>
-      <TouchableOpacity onPress={() => router.push("/more/language")}>
+      <TouchableOpacity onPress={() => router.push("/more/settings/inner/language")}>
         <Text>Language</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/more/privacy")}>
+      <TouchableOpacity onPress={() => router.push("/more/settings/inner/privacy")}>
         <Text>Privacy</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/more/credits")}>
+      <TouchableOpacity onPress={() => router.push("/more/settings/inner/credits")}>
         <Text>Credits</Text>
       </TouchableOpacity>
     </View>

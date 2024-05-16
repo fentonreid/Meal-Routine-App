@@ -7,11 +7,11 @@ const MoreScreen = () => {
 
   return (
     <View>
-      <TouchableOpacity onPress={() => router.push("/more/import")}>
+      <TouchableOpacity onPress={() => router.push("/more/migrate/inner/import")}>
         <Text>Import</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/more/export")}>
+      <TouchableOpacity onPress={() => router.push("/more/migrate/inner/export")}>
         <Text>Export</Text>
       </TouchableOpacity>
     </View>

@@ -15,8 +15,8 @@ const MoreStackLayout = () => {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="additionalfeatures" options={{ headerTitle: "Additional Features" }} />
-      <Stack.Screen name="settings" options={{ headerTitle: "Settings" }} />
+      <Stack.Screen name="index" options={{ headerTitle: "Additional Features" }} />
+      <Stack.Screen name="settings/settings" options={{ headerTitle: "Settings" }} />
     </Stack>
   );
 };

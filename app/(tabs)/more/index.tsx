@@ -20,7 +20,7 @@ const MoreScreen = () => {
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,
           OnPress: () => {
-            router.push("/more/settings");
+            router.push("/more/settings/settings");
           },
         }}
       />
@@ -31,7 +31,7 @@ const MoreScreen = () => {
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,
           OnPress: () => {
-            router.push("/more/importexport");
+            router.push("/more/migrate/migrate");
           },
         }}
       />
@@ -42,7 +42,7 @@ const MoreScreen = () => {
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,
           OnPress: () => {
-            router.push("/more/manageuserdata");
+            router.push("/more/manageuserdata/manageuserdata");
           },
         }}
       />

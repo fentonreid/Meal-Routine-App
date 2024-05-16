@@ -7,15 +7,15 @@ const MoreScreen = () => {
 
   return (
     <View>
-      <TouchableOpacity onPress={() => router.push("/more/usage")}>
+      <TouchableOpacity onPress={() => router.push("/more/manageuserdata/inner/usage")}>
         <Text>Usage Statistics</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/more/reset")}>
+      <TouchableOpacity onPress={() => router.push("/more/manageuserdata/inner/reset")}>
         <Text>Reset User Preferences</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/more/delete")}>
+      <TouchableOpacity onPress={() => router.push("/more/manageuserdata/inner/delete")}>
         <Text>Delete All Data</Text>
       </TouchableOpacity>
     </View>
