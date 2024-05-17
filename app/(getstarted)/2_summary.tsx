@@ -49,7 +49,7 @@ const StackScreen2 = () => {
 
       <Button_AccentThin
         onPress={() => {
-          router.push("/(getstarted)/3_mealroutines");
+          router.push("/3_mealroutines");
         }}
       >
         {t("getstarted_nextbuttontext")}

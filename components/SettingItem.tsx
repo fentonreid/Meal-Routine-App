@@ -2,7 +2,7 @@ import { Text_ListText } from "@/components/TextStyles";
 import { SettingsContext } from "@/store/SettingsContext";
 import { CaretRight, IconProps } from "phosphor-react-native";
 import { useContext } from "react";
-import { View, StyleSheet, TouchableOpacity, ViewStyle, Switch, Text } from "react-native";
+import { View, StyleSheet, TouchableOpacity, ViewStyle, Switch, Text, TouchableWithoutFeedback } from "react-native";
 import { SettingAction } from "../models/SettingAction";
 import { SettingItem_BorderStyle } from "@/models/enums/SettingItem_BorderStyle";
 import { SettingItem_ActionStyle } from "@/models/enums/SettingItem_ActionStyle";
@@ -25,7 +25,9 @@ const SettingItem = ({ Icon, Title, BorderStyle, Action }: SettingItemProps) => 
   const { colours } = useContext(SettingsContext);
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={Action.type === SettingItem_ActionStyle.CHEVRON ? 0.6 : 1}
+      onPress={Action.type === SettingItem_ActionStyle.CHEVRON ? Action.OnPress : () => {}}
       style={[
         styles.container,
         { backgroundColor: colours["light"] },
@@ -38,7 +40,7 @@ const SettingItem = ({ Icon, Title, BorderStyle, Action }: SettingItemProps) => 
       </View>
 
       {renderAction(Action)}
-    </View>
+    </TouchableOpacity>
   );
 };
 

@@ -7,7 +7,7 @@ import { Export, GearSix, User, AirTrafficControl } from "phosphor-react-native"
 import { useContext } from "react";
 import { ScrollView, View, Text } from "react-native";
 
-const MoreScreen = () => {
+const Screen = () => {
   const router = useRouter();
   const { vibrationsEnabled, toggleVibrations } = useContext(SettingsContext);
 
@@ -18,4 +18,4 @@ const MoreScreen = () => {
   );
 };
 
-export default MoreScreen;
+export default Screen;

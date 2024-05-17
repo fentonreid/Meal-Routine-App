@@ -15,7 +15,7 @@ const DebugTabLayout = () => {
       }}
     >
       <Tabs.Screen
-        name="settings"
+        name="settingsdebug"
         options={{
           title: "Settings",
         }}

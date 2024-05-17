@@ -33,7 +33,7 @@ export const FontStyles = StyleSheet.create({
 
   listText: {
     fontSize: 16,
-    fontFamily: "Poppins",
+    fontFamily: "Poppins_Light",
   },
 
   smallerButtonTitle: {

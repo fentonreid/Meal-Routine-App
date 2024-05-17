@@ -21,7 +21,7 @@ const StackScreen5 = () => {
 
       <Button_AccentThin
         onPress={() => {
-          router.push("/(getstarted)/6_letsbegin");
+          router.push("/6_letsbegin");
         }}
       >
         {t("getstarted_nextbuttontext")}

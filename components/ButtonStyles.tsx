@@ -1,19 +1,21 @@
-import { TextProps, TouchableOpacity, StyleSheet, ViewProps, ViewStyle } from "react-native";
+import { TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
 import { useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
 import * as CT from "@/components/TextStyles";
 
 export interface Props {
-  style?: ViewStyle;
   children: React.ReactNode;
+  style?: ViewStyle;
+  activeOpacity?: number;
   onPress?: () => void;
 }
 
-export const Button_PrimaryWide = (props: Props) => {
+export const Button_Wide = (props: Props) => {
   const { colours } = useContext(SettingsContext);
 
   return (
     <TouchableOpacity
+      activeOpacity={props.activeOpacity ? props.activeOpacity : 0.8}
       style={[styles.wideButtonContainer, { backgroundColor: colours["darkPrimary"] }]}
       onPress={props.onPress}
     >
@@ -29,6 +31,7 @@ export const Button_AccentThin = (props: Props) => {
 
   return (
     <TouchableOpacity
+      activeOpacity={props.activeOpacity ? props.activeOpacity : 0.8}
       style={[styles.thinButtonContainer, { backgroundColor: colours["accentButton"] }, props.style]}
       onPress={props.onPress}
     >
@@ -44,6 +47,7 @@ export const Button_PrimaryThin = (props: Props) => {
 
   return (
     <TouchableOpacity
+      activeOpacity={props.activeOpacity ? props.activeOpacity : 0.8}
       style={[styles.thinButtonContainer, { backgroundColor: colours["darkPrimary"] }]}
       onPress={props.onPress}
     >
@@ -59,6 +63,7 @@ export const Button_BackgroundThin = (props: Props) => {
 
   return (
     <TouchableOpacity
+      activeOpacity={props.activeOpacity ? props.activeOpacity : 0.8}
       onPress={props.onPress}
       style={[
         styles.thinButtonContainer,

@@ -7,8 +7,6 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AsyncStorageKeys } from "@/models/AsyncStorageKeys";
 import { COLOURS } from "@/constants/Colours";
-import NotificationManager from "@/managers/NotificationManager";
-import VibrationManager from "@/managers/VibrationManager";
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,

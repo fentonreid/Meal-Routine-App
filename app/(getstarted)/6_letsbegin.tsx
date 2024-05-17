@@ -1,4 +1,4 @@
-import { Button_PrimaryWide } from "@/components/ButtonStyles";
+import { Button_Wide } from "@/components/ButtonStyles";
 import { Text_MainHeading, Text_SuperHeader, Text_Text } from "@/components/TextStyles";
 import { SettingsContext } from "@/store/SettingsContext";
 import { useContext } from "react";
@@ -20,13 +20,13 @@ const StackScreen6 = () => {
         <Text_MainHeading>{t("getstarted_6_hurraytext")}</Text_MainHeading>
         <Text_Text style={{ marginLeft: 12 }}>{t("getstarted_6_slogan")}</Text_Text>
       </View>
-      <Button_PrimaryWide
+      <Button_Wide
         onPress={() => {
           toggleGetStartedEnabled(false);
         }}
       >
         {t("getstarted_6_startbuttontext")}
-      </Button_PrimaryWide>
+      </Button_Wide>
     </View>
   );
 };

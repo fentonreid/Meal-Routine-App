@@ -1,5 +1,5 @@
 import { Button_AccentThin } from "@/components/ButtonStyles";
-import { Text_Heading, Text_Text } from "@/components/TextStyles";
+import { Text_Heading, Text_ListText, Text_Text } from "@/components/TextStyles";
 import { SettingsContext } from "@/store/SettingsContext";
 import { useRouter } from "expo-router";
 import { ArrowRight } from "phosphor-react-native";
@@ -27,19 +27,19 @@ const StackScreen4 = () => {
             <Text_Heading>{t("getstarted_4_categoryheadertitle")}</Text_Heading>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_Text>{t("getstarted_4_breakfastitem")}</Text_Text>
+              <Text_ListText>{t("getstarted_4_breakfastitem")}</Text_ListText>
             </View>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_Text>{t("getstarted_4_lunchitem")}</Text_Text>
+              <Text_ListText>{t("getstarted_4_lunchitem")}</Text_ListText>
             </View>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_Text>{t("getstarted_4_dinneritem")}</Text_Text>
+              <Text_ListText>{t("getstarted_4_dinneritem")}</Text_ListText>
             </View>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_Text>{t("getstarted_4_snacksitem")}</Text_Text>
+              <Text_ListText>{t("getstarted_4_snacksitem")}</Text_ListText>
             </View>
           </View>
         </View>
@@ -47,7 +47,7 @@ const StackScreen4 = () => {
 
       <Button_AccentThin
         onPress={() => {
-          router.push("/(getstarted)/5_diary");
+          router.push("/5_diary");
         }}
       >
         {t("getstarted_nextbuttontext")}

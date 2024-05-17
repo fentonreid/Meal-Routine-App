@@ -6,7 +6,7 @@ export default function ButtonScreen() {
   return (
     <ScrollView>
       <CT.Text_Heading>Primary Button Wide</CT.Text_Heading>
-      <BT.Button_PrimaryWide>Get Started</BT.Button_PrimaryWide>
+      <BT.Button_Wide>Get Started</BT.Button_Wide>
 
       <CT.Text_Heading>Accent Button Thin</CT.Text_Heading>
       <BT.Button_AccentThin>Next</BT.Button_AccentThin>
@@ -15,7 +15,7 @@ export default function ButtonScreen() {
       <BT.Button_PrimaryThin>Next</BT.Button_PrimaryThin>
 
       <CT.Text_Heading>Secondary Button Thin</CT.Text_Heading>
-      <BT.Button_BackgroundThin>Next</BT.Button_BackgroundThin>
+      <BT.Button_BackgroundThin activeOpacity={0.4}>Next</BT.Button_BackgroundThin>
     </ScrollView>
   );
 }

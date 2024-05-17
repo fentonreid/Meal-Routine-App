@@ -28,7 +28,7 @@ const StackScreen3 = () => {
       </View>
       <Button_AccentThin
         onPress={() => {
-          router.push("/(getstarted)/4_meals");
+          router.push("/4_meals");
         }}
       >
         {t("getstarted_nextbuttontext")}

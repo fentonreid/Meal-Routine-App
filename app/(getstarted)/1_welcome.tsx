@@ -1,4 +1,4 @@
-import { Button_PrimaryWide } from "@/components/ButtonStyles";
+import { Button_Wide } from "@/components/ButtonStyles";
 import { Text_MainHeading, Text_SuperHeader, Text_Text } from "@/components/TextStyles";
 import { SettingsContext } from "@/store/SettingsContext";
 import { SplashScreen, useRouter } from "expo-router";
@@ -25,13 +25,13 @@ const StackScreen1 = () => {
         </Text_MainHeading>
         <Text_Text style={{ paddingLeft: 12 }}>{t("getstarted_1_slogan")}</Text_Text>
       </View>
-      <Button_PrimaryWide
+      <Button_Wide
         onPress={() => {
-          router.push("/(getstarted)/2_summary");
+          router.push("/2_summary");
         }}
       >
         {t("getstarted_1_welcomebuttontext")}
-      </Button_PrimaryWide>
+      </Button_Wide>
     </View>
   );
 };
