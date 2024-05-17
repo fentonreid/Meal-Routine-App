@@ -1,5 +1,6 @@
 import { Button_Wide } from "@/components/ButtonStyles";
 import { Text_MainHeading, Text_SuperHeader, Text_Text } from "@/components/TextStyles";
+import Spacings from "@/constants/Spacings";
 import { SettingsContext } from "@/store/SettingsContext";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +19,9 @@ const StackScreen6 = () => {
       />
       <View style={{ flex: 1 }}>
         <Text_MainHeading>{t("getstarted_6_hurraytext")}</Text_MainHeading>
-        <Text_Text style={{ marginLeft: 12 }}>{t("getstarted_6_slogan")}</Text_Text>
+        <Text_Text style={{ marginLeft: Spacings.mainContainerViewPaddingHalved }}>
+          {t("getstarted_6_slogan")}
+        </Text_Text>
       </View>
       <Button_Wide
         onPress={() => {
@@ -33,9 +36,9 @@ const StackScreen6 = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: Spacings.mainContainerViewPadding,
     flex: 1,
-    gap: 12,
+    gap: Spacings.mainContainerViewPaddingHalved,
   },
 });
 export default StackScreen6;

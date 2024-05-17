@@ -1,5 +1,5 @@
-import React, { useContext, useEffect } from "react";
-import { SplashScreen, Stack } from "expo-router";
+import React, { useContext } from "react";
+import { Stack } from "expo-router";
 import { SettingsContext } from "@/store/SettingsContext";
 import FontStyles from "@/constants/FontStyles";
 

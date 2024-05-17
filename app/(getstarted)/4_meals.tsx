@@ -1,5 +1,6 @@
 import { Button_AccentThin } from "@/components/ButtonStyles";
 import { Text_Heading, Text_ListText, Text_Text } from "@/components/TextStyles";
+import Spacings from "@/constants/Spacings";
 import { SettingsContext } from "@/store/SettingsContext";
 import { useRouter } from "expo-router";
 import { ArrowRight } from "phosphor-react-native";
@@ -22,7 +23,7 @@ const StackScreen4 = () => {
           <Text_Text>{t("getstarted_4_mealstext")}</Text_Text>
         </View>
 
-        <View style={{ flex: 1, justifyContent: "space-evenly", paddingBottom: 144 }}>
+        <View style={{ flex: 1, marginTop: Spacings.betweenCardAndHeading }}>
           <View style={styles.innerContainer}>
             <Text_Heading>{t("getstarted_4_categoryheadertitle")}</Text_Heading>
             <View style={styles.itemRow}>
@@ -70,9 +71,9 @@ const StackScreen4 = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    marginTop: 48,
-    marginBottom: 12,
+    padding: Spacings.mainContainerViewPadding,
+    marginTop: Spacings.mainContainerViewPadding,
+    marginBottom: Spacings.mainContainerViewPaddingHalved,
   },
 
   innerContainer: {

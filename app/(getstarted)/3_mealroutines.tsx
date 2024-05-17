@@ -1,5 +1,6 @@
 import { Button_AccentThin } from "@/components/ButtonStyles";
 import { Text_Heading, Text_Text } from "@/components/TextStyles";
+import Spacings from "@/constants/Spacings";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image, Dimensions } from "react-native";
@@ -13,7 +14,12 @@ const StackScreen3 = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, justifyContent: "space-around", paddingBottom: 140 }}>
+      <View
+        style={{
+          flex: 1,
+          gap: Spacings.mainContainerViewPadding * 2,
+        }}
+      >
         <View style={styles.innerContainer}>
           <Text_Heading>{t("getstarted_3_createheadertitle")}</Text_Heading>
           <Text_Text>{t("getstarted_3_createheadertext")}</Text_Text>
@@ -53,9 +59,9 @@ const StackScreen3 = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "space-evenly",
-    padding: 24,
-    marginBottom: 12,
+    padding: Spacings.mainContainerViewPadding,
+    marginBottom: Spacings.mainContainerViewPaddingHalved,
+    marginTop: Spacings.mainContainerViewPadding,
   },
 
   innerContainer: {

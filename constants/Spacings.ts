@@ -5,6 +5,7 @@ const Spacings = {
   mainContainerViewPaddingHalved: 12,
   verticalButtonGap: 12,
   listItemBottomSpacing: 8,
+  mainIconSize: 32,
 };
 
 export default Spacings;

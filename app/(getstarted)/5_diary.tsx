@@ -1,5 +1,6 @@
 import { Button_AccentThin } from "@/components/ButtonStyles";
 import { Text_Text } from "@/components/TextStyles";
+import Spacings from "@/constants/Spacings";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image, Dimensions } from "react-native";
@@ -8,7 +9,6 @@ const StackScreen5 = () => {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
 
   return (
@@ -44,9 +44,8 @@ const StackScreen5 = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    marginTop: 12,
-    marginBottom: 12,
+    padding: Spacings.mainContainerViewPadding,
+    marginTop: Spacings.mainContainerViewPaddingHalved,
   },
 
   itemRow: {

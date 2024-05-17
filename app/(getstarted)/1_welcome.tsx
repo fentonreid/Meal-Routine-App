@@ -1,8 +1,9 @@
 import { Button_Wide } from "@/components/ButtonStyles";
 import { Text_MainHeading, Text_SuperHeader, Text_Text } from "@/components/TextStyles";
+import Spacings from "@/constants/Spacings";
 import { SettingsContext } from "@/store/SettingsContext";
-import { SplashScreen, useRouter } from "expo-router";
-import { useContext, useEffect } from "react";
+import { useRouter } from "expo-router";
+import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image } from "react-native";
 
@@ -23,7 +24,9 @@ const StackScreen1 = () => {
           {t("getstarted_1_mynameis")}
           <Text_MainHeading style={{ color: colours["accent"] }}> {t("getstarted_1_frogname")}</Text_MainHeading>
         </Text_MainHeading>
-        <Text_Text style={{ paddingLeft: 12 }}>{t("getstarted_1_slogan")}</Text_Text>
+        <Text_Text style={{ paddingLeft: Spacings.mainContainerViewPaddingHalved }}>
+          {t("getstarted_1_slogan")}
+        </Text_Text>
       </View>
       <Button_Wide
         onPress={() => {
