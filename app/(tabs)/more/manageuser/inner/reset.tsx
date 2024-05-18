@@ -7,8 +7,7 @@ import { useContext } from "react";
 import { Alert, View } from "react-native";
 
 const Screen = () => {
-  const router = useRouter();
-  const { resetUserPreferences } = useContext(SettingsContext);
+  const { resetUserPreferences, colours } = useContext(SettingsContext);
 
   const confirmResetAlert = () =>
     Alert.alert(
@@ -59,7 +58,9 @@ const Screen = () => {
       </View>
 
       <View style={{ gap: Spacings.verticalButtonGap }}>
-        <Button_Wide onPress={confirmResetAlert}>Confirm</Button_Wide>
+        <Button_Wide onPress={confirmResetAlert} backgroundColour={colours["accentButton"]}>
+          Confirm
+        </Button_Wide>
       </View>
     </View>
   );

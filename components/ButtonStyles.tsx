@@ -6,6 +6,7 @@ import * as CT from "@/components/TextStyles";
 export interface Props {
   children: React.ReactNode;
   style?: ViewStyle;
+  backgroundColour?: string;
   activeOpacity?: number;
   onPress?: () => void;
 }
@@ -16,7 +17,10 @@ export const Button_Wide = (props: Props) => {
   return (
     <TouchableOpacity
       activeOpacity={props.activeOpacity ? props.activeOpacity : 0.8}
-      style={[styles.wideButtonContainer, { backgroundColor: colours["darkPrimary"] }]}
+      style={[
+        styles.wideButtonContainer,
+        { backgroundColor: props.backgroundColour ? props.backgroundColour : colours["darkPrimary"] },
+      ]}
       onPress={props.onPress}
     >
       <CT.Text_PrimaryButtonText style={{ color: colours["buttonText"], textAlign: "center" }}>

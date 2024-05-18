@@ -5,6 +5,7 @@ export type ThemeColours = {
   primary: string;
   secondary: string;
   accent: string;
+  darkAccent: string;
   primaryButton: string;
   accentButton: string;
   buttonText: string;

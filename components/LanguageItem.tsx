@@ -1,34 +1,33 @@
 import { Text_ListText } from "@/components/TextStyles";
 import { SettingsContext } from "@/store/SettingsContext";
-import { CaretRight, IconProps } from "phosphor-react-native";
+import { CheckCircle } from "phosphor-react-native";
 import { useContext } from "react";
-import { View, StyleSheet, TouchableOpacity, ViewStyle, Switch } from "react-native";
-import { SettingAction } from "../models/SettingAction";
+import { View, StyleSheet, TouchableOpacity, ViewStyle, Image, ImageSourcePropType } from "react-native";
 import { SettingItem_BorderStyle } from "@/models/enums/SettingItem_BorderStyle";
-import { SettingItem_ActionStyle } from "@/models/enums/SettingItem_ActionStyle";
 import Spacings from "@/constants/Spacings";
 
-// Setting Item Props
-interface SettingItemProps {
-  Icon: (iconProps: IconProps) => JSX.Element;
+// Language Item Props
+interface LanguageItemProps {
+  ImagePath: ImageSourcePropType;
   Title: string;
+  OnPress: () => void;
   BorderStyle?: SettingItem_BorderStyle;
-  Action: SettingAction;
+  Active?: boolean;
 }
 
-/* Custom Setting Item Component
+/* Custom Language Item Component
     -> Supports 4 different border styles: Start, End, Single, Mid (no border modification)
     -> Supports 2 different action types: chevron (router push), toggle (react native switch in-place) 
     -> Custom Icon
     -> Custom Title
 */
-const SettingItem = ({ Icon, Title, BorderStyle, Action }: SettingItemProps) => {
+const LanguageItem = ({ ImagePath, Title, BorderStyle, Active, OnPress }: LanguageItemProps) => {
   const { colours } = useContext(SettingsContext);
 
   return (
     <TouchableOpacity
-      activeOpacity={Action.type === SettingItem_ActionStyle.CHEVRON ? 0.6 : 1}
-      onPress={Action.type === SettingItem_ActionStyle.CHEVRON ? Action.OnPress : () => {}}
+      activeOpacity={0.7}
+      onPress={OnPress}
       style={[
         styles.container,
         { backgroundColor: colours["light"] },
@@ -36,11 +35,14 @@ const SettingItem = ({ Icon, Title, BorderStyle, Action }: SettingItemProps) => 
       ]}
     >
       <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-        <Icon weight="fill" color={colours["darkPrimary"]} size={Spacings.mainIconSize} />
+        <Image
+          style={{ height: Spacings.mainIconSize, width: Spacings.mainIconSize, resizeMode: "contain" }}
+          source={ImagePath}
+        />
         <Text_ListText style={{ textAlign: "center" }}>{Title}</Text_ListText>
       </View>
 
-      {renderAction(Action)}
+      {Active && <CheckCircle color={colours["accentButton"]} size={Spacings.mainIconSize} />}
     </TouchableOpacity>
   );
 };
@@ -66,30 +68,6 @@ const getBorderStyle = (style: SettingItem_BorderStyle): ViewStyle => {
   }
 };
 
-const renderAction = (action: SettingAction) => {
-  const { colours } = useContext(SettingsContext);
-
-  switch (action.type) {
-    case SettingItem_ActionStyle.CHEVRON:
-      return (
-        <TouchableOpacity onPress={action.OnPress}>
-          <CaretRight color={colours["accentButton"]} size={32} />
-        </TouchableOpacity>
-      );
-
-    case SettingItem_ActionStyle.TOGGLE:
-      return (
-        <Switch
-          style={{ width: 32, height: 32 }}
-          value={action.SwitchValue!}
-          onValueChange={action.SwitchOnValueChange!}
-          trackColor={{ true: colours["darkPrimary"], false: colours["secondary"] }}
-          thumbColor={action.SwitchValue ? colours["primary"] : colours["background"]}
-        />
-      );
-  }
-};
-
 const styles = StyleSheet.create({
   container: {
     padding: 18,
@@ -98,8 +76,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-
-  borderStyling: {},
 });
 
-export default SettingItem;
+export default LanguageItem;

@@ -8,7 +8,7 @@ import { Alert, View } from "react-native";
 
 const Screen = () => {
   const router = useRouter();
-  const { resetUserPreferences } = useContext(SettingsContext);
+  const { resetUserPreferences, colours } = useContext(SettingsContext);
 
   const confirmDeletionAlert = () =>
     Alert.alert(
@@ -59,7 +59,9 @@ const Screen = () => {
       </View>
 
       <View style={{ gap: Spacings.verticalButtonGap }}>
-        <Button_Wide onPress={confirmDeletionAlert}>Confirm</Button_Wide>
+        <Button_Wide onPress={confirmDeletionAlert} backgroundColour={colours["accentButton"]}>
+          Confirm
+        </Button_Wide>
       </View>
     </View>
   );
