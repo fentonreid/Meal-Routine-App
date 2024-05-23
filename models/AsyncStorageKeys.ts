@@ -3,5 +3,4 @@ export enum AsyncStorageKeys {
   VIBRATIONS = "vibrationsEnabled",
   COLOURTHEME = "colourTheme",
   GETSTARTED = "getStartedEnabled",
-  LANGUAGELOCALE = "languageLocale",
 }

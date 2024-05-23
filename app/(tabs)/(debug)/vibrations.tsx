@@ -2,7 +2,7 @@ import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import * as CT from "@/components/TextStyles";
 import VibrationManager from "@/managers/VibrationManager";
 import * as Haptics from "expo-haptics";
-import { FC, useContext } from "react";
+import { useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
 
 const VibrationsScreen = () => {
@@ -11,7 +11,9 @@ const VibrationsScreen = () => {
 
   return (
     <ScrollView>
-      <CT.Text_MealCardTitle>Vibrations are currently: {vibrationsEnabled ? "ON" : "OFF"}</CT.Text_MealCardTitle>
+      <CT.Text_MealCardTitle>
+        Vibrations are currently: {vibrationsEnabled ? "ON" : "OFF"}
+      </CT.Text_MealCardTitle>
       <CT.Text_Heading>Test Impact Vibrations</CT.Text_Heading>
 
       <View style={{ marginTop: 50 }}>
@@ -60,7 +62,9 @@ const VibrationsScreen = () => {
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              vibrationManager.notification(Haptics.NotificationFeedbackType.Success);
+              vibrationManager.notification(
+                Haptics.NotificationFeedbackType.Success
+              );
             }}
           >
             <CT.Text_Text>Success</CT.Text_Text>
@@ -73,7 +77,9 @@ const VibrationsScreen = () => {
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              vibrationManager.notification(Haptics.NotificationFeedbackType.Warning);
+              vibrationManager.notification(
+                Haptics.NotificationFeedbackType.Warning
+              );
             }}
           >
             <CT.Text_Text>Warning</CT.Text_Text>
@@ -86,7 +92,9 @@ const VibrationsScreen = () => {
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              vibrationManager.notification(Haptics.NotificationFeedbackType.Error);
+              vibrationManager.notification(
+                Haptics.NotificationFeedbackType.Error
+              );
             }}
           >
             <CT.Text_Text>Error</CT.Text_Text>

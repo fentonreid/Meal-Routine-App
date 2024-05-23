@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import * as CT from "@/components/TextStyles";
 
 export default function FontScreen() {
@@ -11,7 +11,9 @@ export default function FontScreen() {
       <CT.Text_MealCardTitle>MealCardTitle</CT.Text_MealCardTitle>
       <CT.Text_Text>Text</CT.Text_Text>
       <CT.Text_ListText>ListText</CT.Text_ListText>
-      <CT.Text_SmallerButtonTitle>SmallerButtonTitle</CT.Text_SmallerButtonTitle>
+      <CT.Text_SmallerButtonTitle>
+        SmallerButtonTitle
+      </CT.Text_SmallerButtonTitle>
       <CT.Text_CardHeader>CardHeader</CT.Text_CardHeader>
       <CT.Text_Heading>Heading</CT.Text_Heading>
       <CT.Text_MainHeading>MainHeading</CT.Text_MainHeading>

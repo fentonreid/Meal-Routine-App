@@ -6,14 +6,18 @@ import { SettingItem_ActionStyle } from "@/models/enums/SettingItem_ActionStyle"
 import { SettingItem_BorderStyle } from "@/models/enums/SettingItem_BorderStyle";
 import { useRouter } from "expo-router";
 import { Radioactive, UserCircleMinus, ChartBar } from "phosphor-react-native";
-import { ScrollView, View } from "react-native";
+import { ScrollView } from "react-native";
 
 const Screen = () => {
   const router = useRouter();
 
   return (
     <ScrollView contentContainerStyle={LayoutStyles.settingListScrollView}>
-      <Text_MainHeading style={{ marginBottom: Spacings.betweenHeadingAndMainContent }}>Statistics</Text_MainHeading>
+      <Text_MainHeading
+        style={{ marginBottom: Spacings.betweenHeadingAndMainContent }}
+      >
+        Statistics
+      </Text_MainHeading>
       <SettingItem
         Icon={ChartBar}
         Title="Usage Statistics"
@@ -27,7 +31,10 @@ const Screen = () => {
       />
 
       <Text_MainHeading
-        style={{ marginTop: Spacings.betweenCardAndHeading, marginBottom: Spacings.betweenHeadingAndMainContent }}
+        style={{
+          marginTop: Spacings.betweenCardAndHeading,
+          marginBottom: Spacings.betweenHeadingAndMainContent,
+        }}
       >
         Reset
       </Text_MainHeading>
@@ -44,7 +51,10 @@ const Screen = () => {
       />
 
       <Text_MainHeading
-        style={{ marginTop: Spacings.betweenCardAndHeading, marginBottom: Spacings.betweenHeadingAndMainContent }}
+        style={{
+          marginTop: Spacings.betweenCardAndHeading,
+          marginBottom: Spacings.betweenHeadingAndMainContent,
+        }}
       >
         Delete All Data
       </Text_MainHeading>

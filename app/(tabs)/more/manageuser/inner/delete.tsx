@@ -1,13 +1,11 @@
-import { Button_BackgroundThin, Button_Wide } from "@/components/ButtonStyles";
+import { Button_Wide } from "@/components/ButtonStyles";
 import { Text_ListText, Text_Text } from "@/components/TextStyles";
 import Spacings from "@/constants/Spacings";
 import { SettingsContext } from "@/store/SettingsContext";
-import { useRouter } from "expo-router";
 import { useContext } from "react";
 import { Alert, View } from "react-native";
 
 const Screen = () => {
-  const router = useRouter();
   const { resetUserPreferences, colours } = useContext(SettingsContext);
 
   const confirmDeletionAlert = () =>
@@ -37,7 +35,9 @@ const Screen = () => {
       }}
     >
       <View>
-        <Text_Text>You are about to delete all stored app data, this includes:</Text_Text>
+        <Text_Text>
+          You are about to delete all stored app data, this includes:
+        </Text_Text>
         <Text_ListText
           style={{
             marginVertical: Spacings.listItemBottomSpacing,
@@ -47,19 +47,28 @@ const Screen = () => {
           {"\u2B24"} All meal routine data
         </Text_ListText>
         <Text_ListText
-          style={{ marginBottom: Spacings.listItemBottomSpacing, paddingLeft: Spacings.mainContainerViewPaddingHalved }}
+          style={{
+            marginBottom: Spacings.listItemBottomSpacing,
+            paddingLeft: Spacings.mainContainerViewPaddingHalved,
+          }}
         >
           {"\u2B24"} All user created meals including both recipes and reviews
         </Text_ListText>
         <Text_ListText
-          style={{ marginBottom: Spacings.listItemBottomSpacing, paddingLeft: Spacings.mainContainerViewPaddingHalved }}
+          style={{
+            marginBottom: Spacings.listItemBottomSpacing,
+            paddingLeft: Spacings.mainContainerViewPaddingHalved,
+          }}
         >
           {"\u2B24"} All user preferences
         </Text_ListText>
       </View>
 
       <View style={{ gap: Spacings.verticalButtonGap }}>
-        <Button_Wide onPress={confirmDeletionAlert} backgroundColour={colours["accentButton"]}>
+        <Button_Wide
+          onPress={confirmDeletionAlert}
+          backgroundColour={colours["accentButton"]}
+        >
           Confirm
         </Button_Wide>
       </View>

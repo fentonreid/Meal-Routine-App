@@ -9,7 +9,10 @@ const DebugTabLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
+        headerTitleStyle: {
+          ...FontStyles.mainHeading,
+          color: colours["mainHeading"],
+        },
         headerTitleAlign: "center",
         headerShadowVisible: false,
       }}
@@ -18,13 +21,6 @@ const DebugTabLayout = () => {
         name="settingsdebug"
         options={{
           title: "Settings",
-        }}
-      />
-
-      <Tabs.Screen
-        name="locale"
-        options={{
-          title: "Locale",
         }}
       />
 

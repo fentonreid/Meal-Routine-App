@@ -1,4 +1,4 @@
-import { View, StyleSheet, Switch, Touchable, TouchableOpacity } from "react-native";
+import { View, Switch, TouchableOpacity } from "react-native";
 import * as CT from "@/components/TextStyles";
 import { useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
@@ -8,34 +8,65 @@ const SettingsScreen = () => {
   const settingsContext = useContext(SettingsContext);
 
   const fetchAllItems = async () => {
-    AsyncStorage.getAllKeys().then((keys) => AsyncStorage.multiGet(keys).then((data) => console.log(data)));
+    AsyncStorage.getAllKeys().then((keys) =>
+      AsyncStorage.multiGet(keys).then((data) => console.log(data))
+    );
   };
 
   return (
     <View style={{ gap: 24 }}>
       <View
-        style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 12 }}
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 12,
+        }}
       >
         <CT.Text_Heading>VIBRATIONS</CT.Text_Heading>
-        <Switch value={settingsContext.vibrationsEnabled} onValueChange={settingsContext.toggleVibrations} />
+        <Switch
+          value={settingsContext.vibrationsEnabled}
+          onValueChange={settingsContext.toggleVibrations}
+        />
       </View>
 
       <View
-        style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 12 }}
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 12,
+        }}
       >
         <CT.Text_Heading>NOTIFICATIONS</CT.Text_Heading>
-        <Switch value={settingsContext.notificationEnabled} onValueChange={settingsContext.toggleNotifications} />
+        <Switch
+          value={settingsContext.notificationEnabled}
+          onValueChange={settingsContext.toggleNotifications}
+        />
       </View>
 
       <View
-        style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 12 }}
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 12,
+        }}
       >
         <CT.Text_Heading>GET STARTED</CT.Text_Heading>
-        <Switch value={settingsContext.getStartedEnabled} onValueChange={settingsContext.toggleGetStartedEnabled} />
+        <Switch
+          value={settingsContext.getStartedEnabled}
+          onValueChange={settingsContext.toggleGetStartedEnabled}
+        />
       </View>
 
       <View
-        style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 12 }}
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 12,
+        }}
       >
         <CT.Text_Heading>COLOUR THEME</CT.Text_Heading>
         <Switch

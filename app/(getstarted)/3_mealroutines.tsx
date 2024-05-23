@@ -2,12 +2,10 @@ import { Button_AccentThin } from "@/components/ButtonStyles";
 import { Text_Heading, Text_Text } from "@/components/TextStyles";
 import Spacings from "@/constants/Spacings";
 import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image, Dimensions } from "react-native";
 
 const StackScreen3 = () => {
   const router = useRouter();
-  const { t } = useTranslation();
 
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
@@ -21,14 +19,22 @@ const StackScreen3 = () => {
         }}
       >
         <View style={styles.innerContainer}>
-          <Text_Heading>{t("getstarted_3_createheadertitle")}</Text_Heading>
-          <Text_Text>{t("getstarted_3_createheadertext")}</Text_Text>
+          <Text_Heading>Create Meal Routines</Text_Heading>
+          <Text_Text>
+            Create a meal routine to cover the next 7 days or less, of eating.
+            Add breakfast, lunch, and dinner meals and, any snacks you might
+            have.
+          </Text_Text>
         </View>
 
         <View>
           <View style={styles.innerContainer}>
-            <Text_Heading>{t("getstarted_3_viewheadertitle")}</Text_Heading>
-            <Text_Text>{t("getstarted_3_viewheadertext")}</Text_Text>
+            <Text_Heading>View Meal Routines</Text_Heading>
+            <Text_Text>
+              Add reviews to each meal through the week, with descriptions,
+              images and more. For each meal you can view the ingredients and
+              steps needed to make the meal too.
+            </Text_Text>
           </View>
         </View>
       </View>
@@ -37,7 +43,7 @@ const StackScreen3 = () => {
           router.push("/4_meals");
         }}
       >
-        {t("getstarted_nextbuttontext")}
+        Next
       </Button_AccentThin>
 
       <Image

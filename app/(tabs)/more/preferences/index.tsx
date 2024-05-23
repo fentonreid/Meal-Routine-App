@@ -6,7 +6,7 @@ import { SettingItem_ActionStyle } from "@/models/enums/SettingItem_ActionStyle"
 import { SettingItem_BorderStyle } from "@/models/enums/SettingItem_BorderStyle";
 import { SettingsContext } from "@/store/SettingsContext";
 import { useRouter } from "expo-router";
-import { Bell, Vibrate, Globe, Palette } from "phosphor-react-native";
+import { Bell, Vibrate, Palette } from "phosphor-react-native";
 import { useContext } from "react";
 import { ScrollView } from "react-native";
 
@@ -23,7 +23,11 @@ const Screen = () => {
 
   return (
     <ScrollView contentContainerStyle={LayoutStyles.settingListScrollView}>
-      <Text_MainHeading style={{ marginBottom: Spacings.betweenHeadingAndMainContent }}>General</Text_MainHeading>
+      <Text_MainHeading
+        style={{ marginBottom: Spacings.betweenHeadingAndMainContent }}
+      >
+        General
+      </Text_MainHeading>
       <SettingItem
         Icon={Bell}
         Title="Notifications"
@@ -53,18 +57,6 @@ const Screen = () => {
           SwitchValue: colourTheme === "light",
           SwitchOnValueChange: (value) => {
             toggleColourTheme(value ? "light" : "dark");
-          },
-        }}
-      />
-
-      <SettingItem
-        Icon={Globe}
-        Title="Language"
-        BorderStyle={SettingItem_BorderStyle.END}
-        Action={{
-          type: SettingItem_ActionStyle.CHEVRON,
-          OnPress: () => {
-            router.push("/more/preferences/inner/language");
           },
         }}
       />

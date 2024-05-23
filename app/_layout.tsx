@@ -1,12 +1,17 @@
-import SettingsContextProvider, { SettingsContext } from "@/store/SettingsContext";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import SettingsContextProvider, {
+  SettingsContext,
+} from "@/store/SettingsContext";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Slot, Stack, useRootNavigationState, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { Platform, View } from "react-native";
+import { useContext, useEffect } from "react";
+import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
-import "@/src/i18n/config";
 import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
 import FontStyles from "@/constants/FontStyles";
@@ -62,7 +67,9 @@ const ColourThemeWrapper = () => {
 
   return (
     <>
-      <ThemeProvider value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}>
+      <ThemeProvider
+        value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}
+      >
         <MainNavigation />
       </ThemeProvider>
     </>
@@ -71,7 +78,8 @@ const ColourThemeWrapper = () => {
 
 const MainNavigation = () => {
   const router = useRouter();
-  const { getStartedEnabled, colours, colourTheme } = useContext(SettingsContext);
+  const { getStartedEnabled, colours, colourTheme } =
+    useContext(SettingsContext);
 
   const [loaded] = useFonts({
     Poppins_Light: require("../assets/fonts/Poppins/Poppins-Light.ttf"),
@@ -98,7 +106,8 @@ const MainNavigation = () => {
 
   useEffect(() => {
     const changeBackgroundColour = async () => {
-      if (Platform.OS === "android") NavigationBar.setBackgroundColorAsync(colours["background"]);
+      if (Platform.OS === "android")
+        NavigationBar.setBackgroundColorAsync(colours["background"]);
     };
 
     changeBackgroundColour();
@@ -111,7 +120,10 @@ const MainNavigation = () => {
       <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
       <Stack
         screenOptions={{
-          headerTitleStyle: { ...FontStyles.mainHeading, color: colours["mainHeading"] },
+          headerTitleStyle: {
+            ...FontStyles.mainHeading,
+            color: colours["mainHeading"],
+          },
           headerTitleAlign: "center",
           headerShadowVisible: false,
         }}

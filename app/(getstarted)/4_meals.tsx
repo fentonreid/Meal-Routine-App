@@ -1,16 +1,18 @@
 import { Button_AccentThin } from "@/components/ButtonStyles";
-import { Text_Heading, Text_ListText, Text_Text } from "@/components/TextStyles";
+import {
+  Text_Heading,
+  Text_ListText,
+  Text_Text,
+} from "@/components/TextStyles";
 import Spacings from "@/constants/Spacings";
 import { SettingsContext } from "@/store/SettingsContext";
 import { useRouter } from "expo-router";
 import { ArrowRight } from "phosphor-react-native";
 import { useContext } from "react";
-import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image, Dimensions } from "react-native";
 
 const StackScreen4 = () => {
   const router = useRouter();
-  const { t } = useTranslation();
   const { colours } = useContext(SettingsContext);
 
   const screenWidth = Dimensions.get("window").width;
@@ -20,27 +22,31 @@ const StackScreen4 = () => {
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
         <View style={styles.innerContainer}>
-          <Text_Text>{t("getstarted_4_mealstext")}</Text_Text>
+          <Text_Text>
+            To start with I've added my favourite recipes. Separated into four
+            meal categories. You can easily create your own meals. So don't be
+            shy, get stuck in!
+          </Text_Text>
         </View>
 
         <View style={{ flex: 1, marginTop: Spacings.betweenCardAndHeading }}>
           <View style={styles.innerContainer}>
-            <Text_Heading>{t("getstarted_4_categoryheadertitle")}</Text_Heading>
+            <Text_Heading>Categories</Text_Heading>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_ListText>{t("getstarted_4_breakfastitem")}</Text_ListText>
+              <Text_ListText>Breakfast</Text_ListText>
             </View>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_ListText>{t("getstarted_4_lunchitem")}</Text_ListText>
+              <Text_ListText>Lunch</Text_ListText>
             </View>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_ListText>{t("getstarted_4_dinneritem")}</Text_ListText>
+              <Text_ListText>Dinner</Text_ListText>
             </View>
             <View style={styles.itemRow}>
               <ArrowRight color={colours["darkPrimary"]} />
-              <Text_ListText>{t("getstarted_4_snacksitem")}</Text_ListText>
+              <Text_ListText>Snacks</Text_ListText>
             </View>
           </View>
         </View>
@@ -51,7 +57,7 @@ const StackScreen4 = () => {
           router.push("/5_diary");
         }}
       >
-        {t("getstarted_nextbuttontext")}
+        Next
       </Button_AccentThin>
 
       <Image
