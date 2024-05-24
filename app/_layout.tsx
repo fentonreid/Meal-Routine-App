@@ -16,7 +16,7 @@ import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
 import FontStyles from "@/constants/FontStyles";
 import { AppProvider, UserProvider } from "@realm/react";
-import RealmWrapper from "@/RealmWrapper";
+import RealmWrapper from "@/store/RealmWrapper";
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();

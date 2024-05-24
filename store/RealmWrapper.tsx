@@ -2,8 +2,8 @@ import { useApp } from "@realm/react";
 import { ActivityIndicator, SafeAreaView } from "react-native";
 import { OpenRealmBehaviorType } from "realm";
 import { useEffect, useState } from "react";
-import { RealmContext } from "./Task";
 import Realm from "realm";
+import { RealmContext } from "@/models/schemas/RealmContext";
 
 const { RealmProvider } = RealmContext;
 
@@ -14,8 +14,9 @@ function RealmWrapper(): JSX.Element {
   useEffect(() => {
     const login = async () => {
       const credentials = Realm.Credentials.anonymous();
-      await app.logIn(credentials);
-      console.log("HERE???");
+      const test = await app.logIn(credentials);
+      console.log("HERE: ", test.isLoggedIn);
+      console.log("SIGNED IN....");
       setIsLoggedIn(true);
     };
     login();
