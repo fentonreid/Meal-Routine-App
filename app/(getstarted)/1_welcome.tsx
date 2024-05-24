@@ -30,6 +30,7 @@ const StackScreen1 = () => {
         <Text_MainHeading>
           My name is
           <Text_MainHeading style={{ color: colours["accent"] }}>
+            {" "}
             Froggo
           </Text_MainHeading>
         </Text_MainHeading>

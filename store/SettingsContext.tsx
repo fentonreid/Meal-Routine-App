@@ -2,9 +2,11 @@ import { createContext, useEffect, useState } from "react";
 import { SettingsContextModel } from "@/models/SettingsContext";
 import { ThemeOptions } from "@/models/ThemeOptions";
 import * as Notifications from "expo-notifications";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AsyncStorageKeys } from "@/models/AsyncStorageKeys";
+import { MMKVStorageKeys } from "@/models/MMKVStorageKeys";
 import { COLOURS } from "@/constants/Colours";
+import { MMKV } from "react-native-mmkv";
+
+export const storage = new MMKV();
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,
@@ -49,80 +51,73 @@ const SettingsContextProvider = ({ children }: any) => {
 
   // Fetch initial values from Async Storage, keep defaults if not present
   useEffect(() => {
-    const fetchFromAsyncStorage = async () => {
-      try {
-        const storedNotifications = await AsyncStorage.getItem(
-          AsyncStorageKeys.NOTIFICATIONS
-        );
-        if (storedNotifications)
-          setNotificationsEnabled(storedNotifications === "true");
+    try {
+      // Set Get Started
+      setGetStartedEnabled(
+        storage.contains(MMKVStorageKeys.GETSTARTED)
+          ? storage.getBoolean(MMKVStorageKeys.GETSTARTED)!
+          : true
+      );
 
-        const storedVibrationsEnabled = await AsyncStorage.getItem(
-          AsyncStorageKeys.VIBRATIONS
-        );
-        if (storedVibrationsEnabled)
-          setVibrationsEnabled(storedVibrationsEnabled === "true");
+      // Set Notifications
+      setNotificationsEnabled(
+        storage.contains(MMKVStorageKeys.NOTIFICATIONS)
+          ? storage.getBoolean(MMKVStorageKeys.GETSTARTED)!
+          : true
+      );
 
-        const storedLightTheme = await AsyncStorage.getItem(
-          AsyncStorageKeys.COLOURTHEME
-        );
-        if (storedLightTheme && (storedLightTheme as ThemeOptions) !== null)
-          setLightThemeEnabled(storedLightTheme as ThemeOptions);
+      // Set Vibrations
+      setVibrationsEnabled(
+        storage.contains(MMKVStorageKeys.VIBRATIONS)
+          ? storage.getBoolean(MMKVStorageKeys.VIBRATIONS)!
+          : true
+      );
 
-        const storedGetStarted = await AsyncStorage.getItem(
-          AsyncStorageKeys.GETSTARTED
-        );
-        if (storedGetStarted) setGetStartedEnabled(storedGetStarted === "true");
-      } catch (error) {
-        console.log(
-          "Error getting initial values from Async Storage: " + error
-        );
-      }
-    };
+      // Set Vibrations
+      setVibrationsEnabled(
+        storage.contains(MMKVStorageKeys.VIBRATIONS)
+          ? storage.getBoolean(MMKVStorageKeys.VIBRATIONS)!
+          : true
+      );
 
-    fetchFromAsyncStorage();
+      // Set Light Theme
+      const storedLightTheme = storage.contains(MMKVStorageKeys.COLOURTHEME)
+        ? storage.getString(MMKVStorageKeys.COLOURTHEME)
+        : "light";
+      if (storedLightTheme && (storedLightTheme as ThemeOptions) !== null)
+        setLightThemeEnabled(storedLightTheme as ThemeOptions);
+    } catch (error) {
+      console.log("Error getting initial values from MMKV: " + error);
+    }
   }, []);
 
   const toggleNotifications = async (newState: boolean) => {
     // Cancel all pending notifications
     await Notifications.cancelAllScheduledNotificationsAsync();
 
-    await AsyncStorage.setItem(
-      AsyncStorageKeys.NOTIFICATIONS,
-      newState ? "true" : "false"
-    );
+    storage.set(MMKVStorageKeys.NOTIFICATIONS, newState ? "true" : "false");
 
     setNotificationsEnabled(newState);
   };
 
-  const toggleVibrations = async (newState: boolean) => {
-    await AsyncStorage.setItem(
-      AsyncStorageKeys.VIBRATIONS,
-      newState ? "true" : "false"
-    );
+  const toggleVibrations = (newState: boolean) => {
+    storage.set(MMKVStorageKeys.VIBRATIONS, newState ? "true" : "false");
     setVibrationsEnabled(newState);
   };
 
-  const toggleColourTheme = async (newState: ThemeOptions) => {
-    await AsyncStorage.setItem(AsyncStorageKeys.COLOURTHEME, newState);
+  const toggleColourTheme = (newState: ThemeOptions) => {
+    storage.set(MMKVStorageKeys.COLOURTHEME, newState);
     setLightThemeEnabled(newState);
   };
 
-  const toggledGetStartedEnabled = async (newState: boolean) => {
-    await AsyncStorage.setItem(
-      AsyncStorageKeys.GETSTARTED,
-      newState ? "true" : "false"
-    );
+  const toggledGetStartedEnabled = (newState: boolean) => {
+    storage.set(MMKVStorageKeys.GETSTARTED, newState ? "true" : "false");
     setGetStartedEnabled(newState);
   };
 
   const resetUserPreferences = async () => {
-    await AsyncStorage.multiRemove([
-      AsyncStorageKeys.GETSTARTED,
-      AsyncStorageKeys.NOTIFICATIONS,
-      AsyncStorageKeys.VIBRATIONS,
-      AsyncStorageKeys.COLOURTHEME,
-    ]);
+    // Delete all keys
+    storage.clearAll();
 
     setGetStartedEnabled(true);
     setNotificationsEnabled(true);

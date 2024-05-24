@@ -15,6 +15,8 @@ import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
 import FontStyles from "@/constants/FontStyles";
+import { AppProvider, UserProvider } from "@realm/react";
+import RealmWrapper from "@/RealmWrapper";
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -32,9 +34,15 @@ Notifications.setNotificationHandler({
 
 export default function RootLayout() {
   return (
-    <SettingsContextProvider>
-      <ColourThemeWrapper />
-    </SettingsContextProvider>
+    <>
+      <AppProvider id="application-0-zzrojcv">
+        <UserProvider fallback={<RealmWrapper />}>
+          <SettingsContextProvider>
+            <ColourThemeWrapper />
+          </SettingsContextProvider>
+        </UserProvider>
+      </AppProvider>
+    </>
   );
 }
 

@@ -5,13 +5,11 @@ import Spacings from "@/constants/Spacings";
 import { SettingItem_ActionStyle } from "@/models/enums/SettingItem_ActionStyle";
 import { SettingItem_BorderStyle } from "@/models/enums/SettingItem_BorderStyle";
 import { SettingsContext } from "@/store/SettingsContext";
-import { useRouter } from "expo-router";
 import { Bell, Vibrate, Palette } from "phosphor-react-native";
 import { useContext } from "react";
 import { ScrollView } from "react-native";
 
 const Screen = () => {
-  const router = useRouter();
   const {
     vibrationsEnabled,
     toggleVibrations,
