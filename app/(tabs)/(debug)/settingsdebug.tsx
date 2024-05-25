@@ -2,19 +2,42 @@ import { View, Switch, TouchableOpacity } from "react-native";
 import * as CT from "@/components/TextStyles";
 import { useContext } from "react";
 import { SettingsContext } from "@/store/SettingsContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "@realm/react";
+import { storage } from "@/app/_layout";
 
 const SettingsScreen = () => {
   const settingsContext = useContext(SettingsContext);
+  const user = useUser();
 
-  const fetchAllItems = async () => {
-    AsyncStorage.getAllKeys().then((keys) =>
-      AsyncStorage.multiGet(keys).then((data) => console.log(data))
-    );
+  const fetchAllItems = () => {
+    const allKeys = storage.getAllKeys();
+    const allItems = allKeys.reduce((acc: any, key) => {
+      acc[key] =
+        storage.getString(key) ||
+        storage.getNumber(key) ||
+        storage.getBoolean(key);
+      return acc;
+    }, {});
+
+    console.log(allItems);
   };
 
   return (
     <View style={{ gap: 24 }}>
+      <TouchableOpacity
+        onPress={() => {
+          user.logOut();
+        }}
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 12,
+        }}
+      >
+        <CT.Text_Heading>SIGN OUT REALM USER</CT.Text_Heading>
+      </TouchableOpacity>
+
       <View
         style={{
           flexDirection: "row",

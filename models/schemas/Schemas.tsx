@@ -3,18 +3,17 @@ import Realm from "realm";
 export type ingredients = {
   _id: Realm.BSON.ObjectId;
   creationDate?: Date;
-  creatorId?: users;
+  creatorId?: Realm.BSON.ObjectId;
   isPublic: boolean;
   name: string;
   shoppingCategory: Realm.BSON.ObjectId;
 };
-
 export const ingredientsSchema = {
   name: "ingredients",
   properties: {
     _id: "objectId",
     creationDate: "date?",
-    creatorId: "users",
+    creatorId: "objectId?",
     isPublic: "bool",
     name: "string",
     shoppingCategory: "objectId",
@@ -87,7 +86,7 @@ export const mealRoutines_shoppingListSchema = {
 export type meals = {
   _id: Realm.BSON.ObjectId;
   categories: Realm.List<string>;
-  imageURI: string;
+  imageURI?: string;
   ingredients: Realm.List<meals_ingredients>;
   instructions: Realm.List<string>;
   isPublic: boolean;
@@ -100,7 +99,7 @@ export const mealsSchema = {
   properties: {
     _id: "objectId",
     categories: "string[]",
-    imageURI: "string",
+    imageURI: "string?",
     ingredients: "meals_ingredients[]",
     instructions: "string[]",
     isPublic: "bool",
@@ -169,7 +168,7 @@ export const shoppingCategoriesSchema = {
   properties: {
     _id: "objectId",
     creationDate: "date?",
-    creatorId: "users",
+    creatorId: "objectId?",
     isPublic: "bool",
     shoppingCategory: "string",
   },

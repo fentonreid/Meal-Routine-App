@@ -16,7 +16,10 @@ import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
 import FontStyles from "@/constants/FontStyles";
 import { AppProvider, UserProvider } from "@realm/react";
-import RealmWrapper from "@/store/RealmWrapper";
+import { MMKV } from "react-native-mmkv";
+import RealmWrapper from "@/providers/RealmWrapper";
+
+export const storage = new MMKV();
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -37,9 +40,11 @@ export default function RootLayout() {
     <>
       <AppProvider id="application-0-zzrojcv">
         <UserProvider fallback={<RealmWrapper />}>
-          <SettingsContextProvider>
-            <ColourThemeWrapper />
-          </SettingsContextProvider>
+          <RealmWrapper>
+            <SettingsContextProvider>
+              <ColourThemeWrapper />
+            </SettingsContextProvider>
+          </RealmWrapper>
         </UserProvider>
       </AppProvider>
     </>
@@ -48,9 +53,6 @@ export default function RootLayout() {
 
 const ColourThemeWrapper = () => {
   const { colours, colourTheme } = useContext(SettingsContext);
-
-  // Set navigation bottom bar -- setup in useEffect so I can await
-  // Todo: Unsure if this is valid/needed for IOS, targetting Android only for this snippet
 
   // Custom styling override light and dark defaults for select properties: https://reactnavigation.org/docs/themes/
   const MyDarkTheme = {
@@ -112,6 +114,8 @@ const MainNavigation = () => {
     }
   }, [loaded, getStartedEnabled]);
 
+  // Set navigation bottom bar -- setup in useEffect so I can await
+  // Todo: Unsure if this is valid/needed for IOS, targetting Android only for this snippet
   useEffect(() => {
     const changeBackgroundColour = async () => {
       if (Platform.OS === "android")

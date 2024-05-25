@@ -4,9 +4,7 @@ import { ThemeOptions } from "@/models/ThemeOptions";
 import * as Notifications from "expo-notifications";
 import { MMKVStorageKeys } from "@/models/MMKVStorageKeys";
 import { COLOURS } from "@/constants/Colours";
-import { MMKV } from "react-native-mmkv";
-
-export const storage = new MMKV();
+import { storage } from "@/app/_layout";
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,
@@ -62,14 +60,7 @@ const SettingsContextProvider = ({ children }: any) => {
       // Set Notifications
       setNotificationsEnabled(
         storage.contains(MMKVStorageKeys.NOTIFICATIONS)
-          ? storage.getBoolean(MMKVStorageKeys.GETSTARTED)!
-          : true
-      );
-
-      // Set Vibrations
-      setVibrationsEnabled(
-        storage.contains(MMKVStorageKeys.VIBRATIONS)
-          ? storage.getBoolean(MMKVStorageKeys.VIBRATIONS)!
+          ? storage.getBoolean(MMKVStorageKeys.NOTIFICATIONS)!
           : true
       );
 
@@ -95,13 +86,13 @@ const SettingsContextProvider = ({ children }: any) => {
     // Cancel all pending notifications
     await Notifications.cancelAllScheduledNotificationsAsync();
 
-    storage.set(MMKVStorageKeys.NOTIFICATIONS, newState ? "true" : "false");
+    storage.set(MMKVStorageKeys.NOTIFICATIONS, newState);
 
     setNotificationsEnabled(newState);
   };
 
   const toggleVibrations = (newState: boolean) => {
-    storage.set(MMKVStorageKeys.VIBRATIONS, newState ? "true" : "false");
+    storage.set(MMKVStorageKeys.VIBRATIONS, newState);
     setVibrationsEnabled(newState);
   };
 
@@ -111,7 +102,7 @@ const SettingsContextProvider = ({ children }: any) => {
   };
 
   const toggledGetStartedEnabled = (newState: boolean) => {
-    storage.set(MMKVStorageKeys.GETSTARTED, newState ? "true" : "false");
+    storage.set(MMKVStorageKeys.GETSTARTED, newState);
     setGetStartedEnabled(newState);
   };
 
