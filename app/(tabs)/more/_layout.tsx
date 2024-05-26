@@ -33,18 +33,7 @@ const MoreStackLayout = () => {
       />
       <Stack.Screen name="inner/credits" options={{ headerTitle: "Credits" }} />
 
-      <Stack.Screen
-        name="migrate/index"
-        options={{ headerTitle: "Import / Export" }}
-      />
-      <Stack.Screen
-        name="migrate/inner/import"
-        options={{ headerTitle: "Import" }}
-      />
-      <Stack.Screen
-        name="migrate/inner/export"
-        options={{ headerTitle: "Export" }}
-      />
+      <Stack.Screen name="migrate/index" options={{ headerTitle: "Logout" }} />
 
       <Stack.Screen
         name="manageuser/index"

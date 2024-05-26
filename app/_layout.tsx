@@ -1,5 +1,7 @@
 import RootProvider from "@/providers/RootProvider";
 
-export default function RootLayout() {
+const RootLayout = () => {
   return <RootProvider />;
-}
+};
+
+export default RootLayout;

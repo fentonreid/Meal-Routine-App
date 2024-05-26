@@ -1,103 +1,13 @@
-// import { useApp } from "@realm/react";
-// import Realm from "realm";
-// import { router } from "expo-router";
-// import React, { useState } from "react";
-// import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
-
-// const LoginScreen = () => {
-//   const realmApp = useApp();
-
-//   const [username, setUsername] = useState("test@test.com");
-//   const [password, setPassword] = useState("testing");
-
-//   const handleLogin = async () => {
-//     const credentials = Realm.Credentials.emailPassword(username, password);
-
-//     // Simple validation (for demonstration purposes)
-//     if (username === "" || password === "") {
-//       Alert.alert("Error", "Please enter both username and password");
-//       return;
-//     }
-
-//     try {
-//       // Try sign in
-//       console.log("SIGN IN: ", username, password);
-//       const test = await realmApp.logIn(credentials);
-//       console.log("DID LOGIN WORK???", test.isLoggedIn);
-//     } catch (error) {}
-//   };
-//   return (
-//     <View style={styles.formContainer}>
-//       <Text style={styles.title}>Login</Text>
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Email"
-//         value={username}
-//         onChangeText={setUsername}
-//         keyboardType="email-address"
-//         autoCapitalize="none"
-//       />
-//       <TextInput
-//         style={styles.input}
-//         value={password}
-//         onChangeText={setPassword}
-//         placeholder="Password"
-//         autoCapitalize="none"
-//         secureTextEntry
-//       />
-//       <Button title="Login" onPress={handleLogin} />
-//       <Text style={styles.toggleText}>
-//         Don't have an account?{" "}
-//         <Text
-//           style={styles.toggleLink}
-//           onPress={() => {
-//             router.replace("/(auth)/signup");
-//           }}
-//         >
-//           Sign Up
-//         </Text>
-//       </Text>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: "center",
-//     padding: 16,
-//   },
-//   formContainer: {
-//     alignItems: "center",
-//   },
-//   title: {
-//     fontSize: 24,
-//     marginBottom: 16,
-//   },
-//   input: {
-//     width: "100%",
-//     padding: 8,
-//     marginBottom: 16,
-//     borderWidth: 1,
-//     borderColor: "#ccc",
-//     borderRadius: 4,
-//   },
-//   toggleText: {
-//     marginTop: 16,
-//   },
-//   toggleLink: {
-//     color: "blue",
-//   },
-// });
-
-// export default LoginScreen;
-
+import { SettingsContext } from "@/store/SettingsContext";
 import { useApp } from "@realm/react";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import Realm from "realm";
+import { StatusBar } from "expo-status-bar";
+
 const App = () => {
   const realmApp = useApp();
+  const { colourTheme } = useContext(SettingsContext);
 
   const [isLoginView, setIsLoginView] = useState(true);
   const [username, setUsername] = useState("test@test.com");
@@ -212,9 +122,12 @@ const App = () => {
   );
 
   return (
-    <View style={styles.container}>
-      {isLoginView ? <LoginForm /> : <SignupForm />}
-    </View>
+    <>
+      <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
+      <View style={styles.container}>
+        {isLoginView ? <LoginForm /> : <SignupForm />}
+      </View>
+    </>
   );
 };
 

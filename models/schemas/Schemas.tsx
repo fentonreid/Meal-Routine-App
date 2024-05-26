@@ -225,9 +225,8 @@ export const units_conversionFactorSchema = {
 
 export type users = {
   _id: Realm.BSON.ObjectId;
-  activeMealRoutineId?: unknown;
+  activeMealRoutineId?: null | Realm.BSON.ObjectID;
   diary: Realm.List<users_diary>;
-  password: string;
   username: string;
 };
 
@@ -237,7 +236,6 @@ export const usersSchema = {
     _id: "objectId",
     activeMealRoutineId: "mixed",
     diary: "users_diary[]",
-    password: "string",
     username: "string",
   },
   primaryKey: "_id",

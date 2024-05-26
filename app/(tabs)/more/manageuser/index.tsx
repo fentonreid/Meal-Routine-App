@@ -56,11 +56,11 @@ const Screen = () => {
           marginBottom: Spacings.betweenHeadingAndMainContent,
         }}
       >
-        Delete All Data
+        Delete Account
       </Text_MainHeading>
       <SettingItem
         Icon={Radioactive}
-        Title="Delete All Data"
+        Title="Delete Account"
         BorderStyle={SettingItem_BorderStyle.SINGLE}
         Action={{
           type: SettingItem_ActionStyle.CHEVRON,

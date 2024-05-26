@@ -5,5 +5,12 @@ export type SettingAction =
   | {
       type: SettingItem_ActionStyle.TOGGLE;
       SwitchValue: boolean;
-      SwitchOnValueChange: ((value: boolean) => void | Promise<void>) | null | undefined;
+      SwitchOnValueChange:
+        | ((value: boolean) => void | Promise<void>)
+        | null
+        | undefined;
+    }
+  | {
+      type: SettingItem_ActionStyle.NONE;
+      OnPress: () => void;
     };

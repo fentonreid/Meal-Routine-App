@@ -36,7 +36,8 @@ const Screen = () => {
     >
       <View>
         <Text_Text>
-          You are about to delete all stored app data, this includes:
+          You are about to delete your account with all stored data, this
+          includes:
         </Text_Text>
         <Text_ListText
           style={{
@@ -52,7 +53,7 @@ const Screen = () => {
             paddingLeft: Spacings.mainContainerViewPaddingHalved,
           }}
         >
-          {"\u2B24"} All user created meals including both recipes and reviews
+          {"\u2B24"} All created meals including recipes and reviews
         </Text_ListText>
         <Text_ListText
           style={{
