@@ -1,9 +1,8 @@
 import { View, Switch, TouchableOpacity } from "react-native";
 import * as CT from "@/components/TextStyles";
 import { useContext } from "react";
-import { SettingsContext } from "@/store/SettingsContext";
+import { SettingsContext, storage } from "@/store/SettingsContext";
 import { useUser } from "@realm/react";
-import { storage } from "@/app/_layout";
 
 const SettingsScreen = () => {
   const settingsContext = useContext(SettingsContext);

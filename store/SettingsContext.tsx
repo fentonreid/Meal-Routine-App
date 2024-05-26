@@ -4,7 +4,9 @@ import { ThemeOptions } from "@/models/ThemeOptions";
 import * as Notifications from "expo-notifications";
 import { MMKVStorageKeys } from "@/models/MMKVStorageKeys";
 import { COLOURS } from "@/constants/Colours";
-import { storage } from "@/app/_layout";
+import { MMKV } from "react-native-mmkv";
+
+export const storage = new MMKV();
 
 export const SettingsContext = createContext<SettingsContextModel>({
   notificationEnabled: true,

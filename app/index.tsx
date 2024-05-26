@@ -1,12 +1,7 @@
-import { useRouter } from "expo-router";
-import { View, Text } from "react-native";
+import Loading from "@/components/Loading";
 
 const IndexScreen = () => {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>INDEX PAGE</Text>
-    </View>
-  );
+  return <Loading />;
 };
 
 export default IndexScreen;
