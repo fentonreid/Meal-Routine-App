@@ -1,8 +1,6 @@
 import { meals } from "@/models/schemas/Schemas";
-import { RealmContext } from "@/store/RealmContext";
 import { View, Text, StyleSheet, FlatList } from "react-native";
-
-const { useRealm, useQuery } = RealmContext;
+import { useQuery } from "@realm/react";
 
 const Screen = () => {
   const meals = useQuery<meals>("meals");
