@@ -33,8 +33,6 @@ const MoreStackLayout = () => {
       />
       <Stack.Screen name="inner/credits" options={{ headerTitle: "Credits" }} />
 
-      <Stack.Screen name="migrate/index" options={{ headerTitle: "Logout" }} />
-
       <Stack.Screen
         name="manageuser/index"
         options={{ headerTitle: "Manage User Data" }}

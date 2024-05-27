@@ -1,9 +1,9 @@
-import { meals } from "@/models/schemas/Schemas";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import { useQuery } from "@realm/react";
+import { Meals } from "@/models/schemas/Schemas";
 
 const Screen = () => {
-  const meals = useQuery<meals>("meals");
+  const meals = useQuery<Meals>("Meals");
 
   return (
     <View>
