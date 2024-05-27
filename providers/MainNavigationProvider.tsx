@@ -15,7 +15,7 @@ const MainNavigationProvider = () => {
     useContext(SettingsContext);
 
   useEffect(() => {
-    if (!getStartedEnabled) router.replace("/(tabs)/create");
+    if (!getStartedEnabled) router.replace("/(tabs)/mealroutine");
     else router.replace("/(getstarted)/1_welcome");
   }, [getStartedEnabled]);
 

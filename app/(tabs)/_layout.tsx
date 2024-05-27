@@ -8,9 +8,14 @@ import {
   DotsThreeCircle,
   ForkKnife,
   Heart,
+  ListChecks,
   ListPlus,
 } from "phosphor-react-native";
 import { FontStyles } from "@/constants/FontStyles";
+import { useQuery, useUser } from "@realm/react";
+import { MealRoutines, Users } from "@/models/schemas/Schemas";
+import { ObjectId } from "bson";
+import { MealRoutineState } from "@/models/enums/MealRoutineState";
 
 const TabBarLabel = ({ focused, label }: any) => {
   const { colours } = useContext(SettingsContext);
@@ -32,6 +37,25 @@ const TabBarLabel = ({ focused, label }: any) => {
 
 const MainTabLayout = () => {
   const { colours } = useContext(SettingsContext);
+  const user = useUser();
+
+  const userMealRoutineProgress = useQuery<Users>("Users")[0];
+  let mealRoutineState = MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL;
+
+  // Get the state from the activeMealRoutine if the reference from users is determined
+  if (userMealRoutineProgress.activeMealRoutineId != null) {
+    // Get the active meal routine and determine the current state
+    const activeMealRoutine = useQuery<MealRoutines>("MealRoutines").filtered(
+      "creatorId == $0",
+      new ObjectId(user!.id)
+    )[0];
+
+    mealRoutineState = activeMealRoutine.mealRoutineState as MealRoutineState;
+  }
+
+  let isMealRoutineCreateMode =
+    mealRoutineState != MealRoutineState.VIEWING &&
+    mealRoutineState != MealRoutineState.COMPLETE;
 
   return (
     <Tabs
@@ -47,18 +71,32 @@ const MainTabLayout = () => {
       }}
     >
       <Tabs.Screen
-        name="create"
+        name="mealroutine"
         options={{
-          title: "Create",
-          tabBarLabel: (props) => <TabBarLabel label="Create" {...props} />,
-          tabBarIcon: ({ color, size }) => (
-            <ListPlus
-              weight={color === colours["tabSelected"] ? "fill" : "regular"}
-              color={color}
-              size={size}
-              style={{ marginTop: 6 }}
+          headerShown: false,
+          tabBarLabel: (props) => (
+            <TabBarLabel
+              label={isMealRoutineCreateMode ? "Create" : "View"}
+              {...props}
             />
           ),
+          tabBarIcon: ({ color, size }) => {
+            return isMealRoutineCreateMode ? (
+              <ListPlus
+                weight={color === colours["tabSelected"] ? "fill" : "regular"}
+                color={color}
+                size={size}
+                style={{ marginTop: 6 }}
+              />
+            ) : (
+              <ListChecks
+                weight={color === colours["tabSelected"] ? "fill" : "regular"}
+                color={color}
+                size={size}
+                style={{ marginTop: 6 }}
+              />
+            );
+          },
         }}
       />
       <Tabs.Screen
