@@ -16,10 +16,9 @@ import { useQuery, useUser } from "@realm/react";
 import { MealRoutines, Users } from "@/models/schemas/Schemas";
 import { ObjectId } from "bson";
 import { MealRoutineState } from "@/models/enums/MealRoutineState";
+import MealRoutineStateManager from "@/managers/MealRoutineStateManager";
 
-const TabBarLabel = ({ focused, label }: any) => {
-  const { colours } = useContext(SettingsContext);
-
+const TabBarLabel = ({ focused, label, colours }: any) => {
   return (
     <Text
       style={{
@@ -37,21 +36,19 @@ const TabBarLabel = ({ focused, label }: any) => {
 
 const MainTabLayout = () => {
   const { colours } = useContext(SettingsContext);
-  const user = useUser();
 
-  const userMealRoutineProgress = useQuery<Users>("Users")[0];
-  let mealRoutineState = MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL;
+  const loggedInUser = useQuery<Users>("Users")[0];
+  const activeMealRoutine = useQuery<MealRoutines>("MealRoutines").filtered(
+    "_id == $0",
+    loggedInUser.activeMealRoutineId ? loggedInUser.activeMealRoutineId : null
+  );
 
-  // Get the state from the activeMealRoutine if the reference from users is determined
-  if (userMealRoutineProgress.activeMealRoutineId != null) {
-    // Get the active meal routine and determine the current state
-    const activeMealRoutine = useQuery<MealRoutines>("MealRoutines").filtered(
-      "creatorId == $0",
-      new ObjectId(user!.id)
-    )[0];
-
-    mealRoutineState = activeMealRoutine.mealRoutineState as MealRoutineState;
-  }
+  let mealRoutineState =
+    activeMealRoutine === null ||
+    activeMealRoutine.length === 0 ||
+    activeMealRoutine.length > 1
+      ? MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL
+      : (activeMealRoutine[0].mealRoutineState as MealRoutineState);
 
   let isMealRoutineCreateMode =
     mealRoutineState != MealRoutineState.VIEWING &&
@@ -76,6 +73,7 @@ const MainTabLayout = () => {
           headerShown: false,
           tabBarLabel: (props) => (
             <TabBarLabel
+              colours={colours}
               label={isMealRoutineCreateMode ? "Create" : "View"}
               {...props}
             />
@@ -103,7 +101,9 @@ const MainTabLayout = () => {
         name="meals"
         options={{
           title: "Meals",
-          tabBarLabel: (props) => <TabBarLabel label="Meals" {...props} />,
+          tabBarLabel: (props) => (
+            <TabBarLabel colours={colours} label="Meals" {...props} />
+          ),
           tabBarIcon: ({ color, size }) => (
             <ForkKnife
               color={color}
@@ -118,7 +118,9 @@ const MainTabLayout = () => {
         name="diary"
         options={{
           title: "Diary",
-          tabBarLabel: (props) => <TabBarLabel label={"Diary"} {...props} />,
+          tabBarLabel: (props) => (
+            <TabBarLabel colours={colours} label={"Diary"} {...props} />
+          ),
           tabBarIcon: ({ color, size }) => (
             <>
               <Book
@@ -146,7 +148,9 @@ const MainTabLayout = () => {
         name="more"
         options={{
           headerShown: false,
-          tabBarLabel: (props) => <TabBarLabel label={"More"} {...props} />,
+          tabBarLabel: (props) => (
+            <TabBarLabel colours={colours} label={"More"} {...props} />
+          ),
           tabBarIcon: ({ color, size }) => (
             <DotsThreeCircle
               weight={color === colours["tabSelected"] ? "fill" : "regular"}
@@ -161,7 +165,9 @@ const MainTabLayout = () => {
         name="(debug)"
         options={{
           headerShown: false,
-          tabBarLabel: (props) => <TabBarLabel label="DEBUG" {...props} />,
+          tabBarLabel: (props) => (
+            <TabBarLabel colours={colours} label="DEBUG" {...props} />
+          ),
           tabBarIcon: ({ color, size }) => (
             <BugBeetle
               weight={color === colours["tabSelected"] ? "fill" : "regular"}

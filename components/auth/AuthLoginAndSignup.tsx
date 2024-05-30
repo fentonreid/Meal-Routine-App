@@ -6,8 +6,8 @@ import Realm from "realm";
 import { StatusBar } from "expo-status-bar";
 
 const App = () => {
-  const realmApp = useApp();
   const { colourTheme } = useContext(SettingsContext);
+  const realmApp = useApp();
 
   const [isLoginView, setIsLoginView] = useState(true);
   const [username, setUsername] = useState("test@test.com");

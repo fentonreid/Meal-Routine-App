@@ -27,8 +27,13 @@ export const FontStyles = StyleSheet.create({
   },
 
   text: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Poppins_Light",
+  },
+
+  textBold: {
+    fontSize: 15,
+    fontFamily: "Poppins_Bold",
   },
 
   listText: {

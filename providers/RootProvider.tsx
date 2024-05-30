@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
 import LoadFontProvider from "@/providers/LoadFontsProviders";
 import SubscriptionFetchingProvider from "./SubscriptionFetchingProvider";
+import "react-native-get-random-values";
 
 // Keep the splashscreen showing until disabled after fonts are loaded
 SplashScreen.preventAutoHideAsync();

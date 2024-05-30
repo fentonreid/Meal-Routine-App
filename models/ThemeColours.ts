@@ -2,6 +2,7 @@ export type ThemeColours = {
   background: string;
   darkerBackground: string;
   text: string;
+  lightPrimary: string;
   primary: string;
   secondary: string;
   accent: string;

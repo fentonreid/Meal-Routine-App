@@ -10,9 +10,9 @@ import { StatusBar } from "expo-status-bar";
 import FontStyles from "@/constants/FontStyles";
 
 const MainNavigationProvider = () => {
-  const router = useRouter();
   const { getStartedEnabled, colours, colourTheme } =
     useContext(SettingsContext);
+  const router = useRouter();
 
   useEffect(() => {
     if (!getStartedEnabled) router.replace("/(tabs)/mealroutine");
