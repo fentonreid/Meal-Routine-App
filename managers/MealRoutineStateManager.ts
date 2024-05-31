@@ -1,5 +1,5 @@
 import { MealRoutineState } from "@/models/enums/MealRoutineState";
-import { MealRoutines, Users } from "@/models/schemas/Schemas";
+import { Users } from "@/models/schemas/Schemas";
 import { useQuery } from "@realm/react";
 import { router } from "expo-router";
 import { useEffect } from "react";
@@ -11,28 +11,20 @@ type Props = {
 const MealRoutineStateManager = ({ ignoreCurrentMealRoutineState }: Props) => {
   const loggedInUser = useQuery<Users>("Users")[0];
 
-  const activeMealRoutine = useQuery<MealRoutines>("MealRoutines").filtered(
-    "_id == $0",
-    loggedInUser.activeMealRoutineId ? loggedInUser.activeMealRoutineId : null
-  );
-
   useEffect(() => {
     const mealRoutineState =
-      activeMealRoutine === null ||
-      activeMealRoutine.length === 0 ||
-      activeMealRoutine.length > 1
+      loggedInUser.activeMealRoutineId === null
         ? MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL
-        : (activeMealRoutine[0].mealRoutineState as MealRoutineState);
+        : (loggedInUser.activeMealRoutineId!
+            .mealRoutineState as MealRoutineState);
 
     // If we are already on the meal routine state then ignore...
     if (
-      (ignoreCurrentMealRoutineState &&
-        ignoreCurrentMealRoutineState!.includes(mealRoutineState)) ||
-      activeMealRoutine == null
+      !ignoreCurrentMealRoutineState ||
+      ignoreCurrentMealRoutineState!.includes(mealRoutineState) ||
+      loggedInUser.activeMealRoutineId === null
     )
       return;
-
-    if (!ignoreCurrentMealRoutineState) return;
 
     // SWITCH on mealRoutineState and redirect to appropriate stack
     switch (mealRoutineState) {
@@ -61,10 +53,10 @@ const MealRoutineStateManager = ({ ignoreCurrentMealRoutineState }: Props) => {
         router.replace("mealroutine/states/6_complete");
         break;
     }
-  }, [activeMealRoutine]);
+  }, [loggedInUser.activeMealRoutineId]);
 
-  if (activeMealRoutine != null && activeMealRoutine.length === 1)
-    return activeMealRoutine[0];
+  if (loggedInUser.activeMealRoutineId !== null)
+    return loggedInUser.activeMealRoutineId;
 
   return null;
 };

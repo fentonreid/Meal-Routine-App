@@ -14,7 +14,7 @@ import {
   MomentToUTCDateStart,
   ToUTCDateStartFromMoment,
 } from "@/constants/Date";
-import { DailyMeal_Meals, MealRoutines, Users } from "@/models/schemas/Schemas";
+import { DailyMeal_Meals, Users } from "@/models/schemas/Schemas";
 import moment from "moment";
 import { MealType } from "@/models/enums/MealType";
 import { MealState } from "@/models/enums/MealState";
@@ -39,23 +39,20 @@ const Screen = () => {
   // Method to create a new active meal routine
   const createMealRoutine = () =>
     realm.write(() => {
-      // Create meal routine
-      const createdMealRoutine = realm.create<MealRoutines>("MealRoutines", {
+      // Create association between users and meal routines
+      loggedInUser.activeMealRoutineId = {
         _id: new ObjectId(),
         creatorId: loggedInUser._id,
+        dailyMeals: [],
         mealRoutineState: MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL,
-      });
-
-      // Create association between users and meal routines
-      loggedInUser.activeMealRoutineId = createdMealRoutine._id;
-
-      return createdMealRoutine;
+        shoppingList: [],
+      };
     });
 
   const updateActiveMealRoutine = useCallback(
     (startDate: string, endDate: string) => {
       // Meal Routine is null, so need to create an active meal routine reference from users to mealRoutines and populate the mealRoutine as expected
-      if (activeMealRoutine == null) activeMealRoutine = createMealRoutine();
+      if (loggedInUser.activeMealRoutineId === null) createMealRoutine();
 
       // Create a meals object loop through each day and create: breakfast, lunch, dinner and snack objects
       let currentDate = moment(startDate).startOf("day");
@@ -75,7 +72,7 @@ const Screen = () => {
         }
 
         realm.write(() => {
-          activeMealRoutine!.dailyMeals.push({
+          loggedInUser.activeMealRoutineId!.dailyMeals.push({
             date: ToUTCDateStartFromMoment(currentDate),
             day: currentDate.format("dddd"),
             meals: dailyMeal,
@@ -87,9 +84,11 @@ const Screen = () => {
       }
 
       realm.write(() => {
-        activeMealRoutine!.mealRoutineState = MealRoutineState.SELECTING_MEALS;
-        activeMealRoutine!.startDate = MomentToUTCDateStart(startDate);
-        activeMealRoutine!.endDate = MomentToUTCDateEnd(endDate);
+        loggedInUser.activeMealRoutineId!.mealRoutineState =
+          MealRoutineState.SELECTING_MEALS;
+        loggedInUser.activeMealRoutineId!.startDate =
+          MomentToUTCDateStart(startDate);
+        loggedInUser.activeMealRoutineId!.endDate = MomentToUTCDateEnd(endDate);
       });
 
       // Manually change to next route

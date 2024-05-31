@@ -260,7 +260,7 @@ export const User_DiarySchema = {
 
 export type Users = {
   _id: Realm.BSON.ObjectId;
-  activeMealRoutineId?: unknown;
+  activeMealRoutineId?: MealRoutines;
   diary: User_Diary[];
   username: string;
 };
@@ -269,7 +269,7 @@ export const UsersSchema = {
   name: "Users",
   properties: {
     _id: "objectId",
-    activeMealRoutineId: "mixed",
+    activeMealRoutineId: "MealRoutines",
     diary: "User_Diary[]",
     username: "string",
   },
