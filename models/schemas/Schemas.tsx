@@ -1,7 +1,7 @@
 import Realm from "realm";
 
 export type DailyMeal_Meals = {
-  mealId?: unknown;
+  mealId?: Meals;
   mealState: string;
   mealType: string;
   review?: unknown;
@@ -11,7 +11,7 @@ export const DailyMeal_MealsSchema = {
   name: "DailyMeal_Meals",
   embedded: true,
   properties: {
-    mealId: "mixed",
+    mealId: "Meals",
     mealState: "string",
     mealType: "string",
     review: "mixed",

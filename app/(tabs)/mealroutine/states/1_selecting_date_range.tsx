@@ -68,7 +68,6 @@ const Screen = () => {
         // Create a meal for each meal type: breakfast, lunch, etc...
         for (let mealType in MealType) {
           dailyMeal.push({
-            mealId: null,
             mealType: mealType,
             mealState: MealState.PENDING_MEAL_SELECTION,
             review: null,
