@@ -9,12 +9,12 @@ import Spacings from "@/constants/Spacings";
 import { Button_PrimaryNormal } from "@/components/ButtonStyles";
 import { useQuery, useRealm } from "@realm/react";
 import { router } from "expo-router";
-import { MomentToUTCDateEnd, MomentToUTCDateStart } from "@/constants/Date";
 import {
-  MealRoutine_Meals,
-  MealRoutines,
-  Users,
-} from "@/models/schemas/Schemas";
+  MomentToUTCDateEnd,
+  MomentToUTCDateStart,
+  ToUTCDateStartFromMoment,
+} from "@/constants/Date";
+import { DailyMeal_Meals, MealRoutines, Users } from "@/models/schemas/Schemas";
 import moment from "moment";
 import { MealType } from "@/models/enums/MealType";
 import { MealState } from "@/models/enums/MealState";
@@ -39,7 +39,6 @@ const Screen = () => {
   // Method to create a new active meal routine
   const createMealRoutine = () =>
     realm.write(() => {
-      console.log("USER?", loggedInUser);
       // Create meal routine
       const createdMealRoutine = realm.create<MealRoutines>("MealRoutines", {
         _id: new ObjectId(),
@@ -55,39 +54,43 @@ const Screen = () => {
 
   const updateActiveMealRoutine = useCallback(
     (startDate: string, endDate: string) => {
-      let meals: MealRoutine_Meals[] = [];
-
-      if (activeMealRoutine == null) {
-        // Meal Routine is null, so need to create an active meal routine reference from users to mealRoutines and populate the mealRoutine as expected
-        console.log("ACTIVE MEAL ROUTINE IS NULL");
-        activeMealRoutine = createMealRoutine();
-        console.log("HERE??");
-      }
+      // Meal Routine is null, so need to create an active meal routine reference from users to mealRoutines and populate the mealRoutine as expected
+      if (activeMealRoutine == null) activeMealRoutine = createMealRoutine();
 
       // Create a meals object loop through each day and create: breakfast, lunch, dinner and snack objects
-      let currentDate = moment(startDate);
+      let currentDate = moment(startDate).startOf("day");
       const end = moment(endDate);
 
-      while (currentDate.isSameOrBefore(end)) {
+      while (currentDate.isSameOrBefore(end, "day")) {
+        // Create a meal routine per day
+        let dailyMeal: DailyMeal_Meals[] = [];
+
         // Create a meal for each meal type: breakfast, lunch, etc...
         for (let mealType in MealType) {
-          meals.push({
+          dailyMeal.push({
             mealId: null,
-            day: currentDate.format("dddd"),
             mealType: mealType,
             mealState: MealState.PENDING_MEAL_SELECTION,
+            review: null,
           });
         }
+
+        realm.write(() => {
+          activeMealRoutine!.dailyMeals.push({
+            date: ToUTCDateStartFromMoment(currentDate),
+            day: currentDate.format("dddd"),
+            meals: dailyMeal,
+          });
+        });
 
         // Increment currentDate
         currentDate = currentDate.add(1, "days");
       }
 
       realm.write(() => {
-        activeMealRoutine!.mealRoutineState = "CREATE_SELECTING_MEALS";
+        activeMealRoutine!.mealRoutineState = MealRoutineState.SELECTING_MEALS;
         activeMealRoutine!.startDate = MomentToUTCDateStart(startDate);
         activeMealRoutine!.endDate = MomentToUTCDateEnd(endDate);
-        activeMealRoutine!.meals.push(...meals);
       });
 
       // Manually change to next route

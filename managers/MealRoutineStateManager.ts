@@ -32,6 +32,8 @@ const MealRoutineStateManager = ({ ignoreCurrentMealRoutineState }: Props) => {
     )
       return;
 
+    if (!ignoreCurrentMealRoutineState) return;
+
     // SWITCH on mealRoutineState and redirect to appropriate stack
     switch (mealRoutineState) {
       case MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL:

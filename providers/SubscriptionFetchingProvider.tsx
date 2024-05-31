@@ -20,7 +20,8 @@ const SubscriptionFetchingProvider = () => {
         Schema.MealsSchema,
         Schema.Meal_IngredientsSchema,
         Schema.MealRoutinesSchema,
-        Schema.MealRoutine_MealsSchema,
+        Schema.MealRoutine_DailyMealsSchema,
+        Schema.DailyMeal_MealsSchema,
         Schema.MealRoutine_ShoppingListSchema,
         Schema.IngredientsSchema,
       ]}

@@ -12,9 +12,6 @@ import {
   ListPlus,
 } from "phosphor-react-native";
 import { FontStyles } from "@/constants/FontStyles";
-import { useQuery, useUser } from "@realm/react";
-import { MealRoutines, Users } from "@/models/schemas/Schemas";
-import { ObjectId } from "bson";
 import { MealRoutineState } from "@/models/enums/MealRoutineState";
 import MealRoutineStateManager from "@/managers/MealRoutineStateManager";
 
@@ -37,18 +34,12 @@ const TabBarLabel = ({ focused, label, colours }: any) => {
 const MainTabLayout = () => {
   const { colours } = useContext(SettingsContext);
 
-  const loggedInUser = useQuery<Users>("Users")[0];
-  const activeMealRoutine = useQuery<MealRoutines>("MealRoutines").filtered(
-    "_id == $0",
-    loggedInUser.activeMealRoutineId ? loggedInUser.activeMealRoutineId : null
-  );
+  const activeMealRoutine = MealRoutineStateManager({});
 
   let mealRoutineState =
-    activeMealRoutine === null ||
-    activeMealRoutine.length === 0 ||
-    activeMealRoutine.length > 1
+    activeMealRoutine === null
       ? MealRoutineState.ACTIVE_MEAL_ROUTINE_NULL
-      : (activeMealRoutine[0].mealRoutineState as MealRoutineState);
+      : (activeMealRoutine.mealRoutineState as MealRoutineState);
 
   let isMealRoutineCreateMode =
     mealRoutineState != MealRoutineState.VIEWING &&

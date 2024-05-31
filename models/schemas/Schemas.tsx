@@ -1,5 +1,23 @@
 import Realm from "realm";
 
+export type DailyMeal_Meals = {
+  mealId?: unknown;
+  mealState: string;
+  mealType: string;
+  review?: unknown;
+};
+
+export const DailyMeal_MealsSchema = {
+  name: "DailyMeal_Meals",
+  embedded: true,
+  properties: {
+    mealId: "mixed",
+    mealState: "string",
+    mealType: "string",
+    review: "mixed",
+  },
+};
+
 export type Ingredients = {
   _id: Realm.BSON.ObjectId;
   creationDate?: Date;
@@ -22,30 +40,26 @@ export const IngredientsSchema = {
   primaryKey: "_id",
 };
 
-export type MealRoutine_Meals = {
-  day?: string;
-  mealId?: null | Realm.BSON.ObjectID;
-  mealState?: string;
-  mealType?: string;
-  review?: null | Realm.BSON.ObjectID;
+export type MealRoutine_DailyMeals = {
+  date: Date;
+  day: string;
+  meals: DailyMeal_Meals[];
 };
 
-export const MealRoutine_MealsSchema = {
-  name: "MealRoutine_Meals",
+export const MealRoutine_DailyMealsSchema = {
+  name: "MealRoutine_DailyMeals",
   embedded: true,
   properties: {
-    day: "string?",
-    mealId: "mixed",
-    mealState: "string?",
-    mealType: "string?",
-    review: "mixed",
+    date: "date",
+    day: "string",
+    meals: "DailyMeal_Meals[]",
   },
 };
 
 export type MealRoutine_ShoppingList = {
   ingredientId: Realm.BSON.ObjectId;
   isAdded: boolean;
-  totalQuantity?: number | string;
+  totalQuantity?: unknown;
   unitId: Realm.BSON.ObjectId;
 };
 
@@ -63,10 +77,10 @@ export const MealRoutine_ShoppingListSchema = {
 export type MealRoutines = {
   _id: Realm.BSON.ObjectId;
   creatorId: Realm.BSON.ObjectId;
+  dailyMeals: MealRoutine_DailyMeals[];
   endDate?: Date;
   mealRoutineState: string;
-  meals: Realm.List<MealRoutine_Meals>;
-  shoppingList: Realm.List<MealRoutine_ShoppingList>;
+  shoppingList: MealRoutine_ShoppingList[];
   startDate?: Date;
 };
 
@@ -75,9 +89,9 @@ export const MealRoutinesSchema = {
   properties: {
     _id: "objectId",
     creatorId: "objectId",
+    dailyMeals: "MealRoutine_DailyMeals[]",
     endDate: "date?",
     mealRoutineState: "string",
-    meals: "MealRoutine_Meals[]",
     shoppingList: "MealRoutine_ShoppingList[]",
     startDate: "date?",
   },
@@ -88,7 +102,7 @@ export type Meal_Ingredients = {
   ingredient?: string;
   ingredientId: Realm.BSON.ObjectId;
   measure?: string;
-  quantity?: number | string;
+  quantity?: unknown;
   unit: Realm.BSON.ObjectId;
 };
 
@@ -106,15 +120,15 @@ export const Meal_IngredientsSchema = {
 
 export type Meals = {
   _id: Realm.BSON.ObjectId;
-  categories: Realm.List<string>;
+  categories: string[];
   creationDate?: Date;
-  creatorId?: Realm.BSON.ObjectID;
+  creatorId?: Realm.BSON.ObjectId;
   imageURI?: string;
-  ingredients: Realm.List<Meal_Ingredients>;
-  instructions: Realm.List<string>;
+  ingredients: Meal_Ingredients[];
+  instructions: string[];
   isPublic: boolean;
   name?: string;
-  subCategories: Realm.List<string>;
+  subCategories: string[];
 };
 
 export const MealsSchema = {
@@ -163,7 +177,7 @@ export const ReviewsSchema = {
 export type ShoppingCategories = {
   _id: Realm.BSON.ObjectId;
   creationDate?: Date;
-  creatorId?: Realm.BSON.ObjectID;
+  creatorId?: Realm.BSON.ObjectId;
   isPublic: boolean;
   shoppingCategory: string;
 };
@@ -180,13 +194,27 @@ export const ShoppingCategoriesSchema = {
   primaryKey: "_id",
 };
 
+export type Unit_ConversionFactor = {
+  toImperial: number;
+  toMetric: number;
+};
+
+export const Unit_ConversionFactorSchema = {
+  name: "Unit_ConversionFactor",
+  embedded: true,
+  properties: {
+    toImperial: "double",
+    toMetric: "double",
+  },
+};
+
 export type Units = {
   _id: Realm.BSON.ObjectId;
-  baseUnit?: null | Realm.BSON.ObjectID;
+  baseUnit?: unknown;
   conversionFactor?: Unit_ConversionFactor;
   conversionPossible?: boolean;
   creationDate?: Date;
-  creatorId?: Realm.BSON.ObjectID;
+  creatorId?: Realm.BSON.ObjectId;
   isBaseUnit?: boolean;
   isPublic: boolean;
   system?: string;
@@ -214,38 +242,6 @@ export const UnitsSchema = {
   primaryKey: "_id",
 };
 
-export type Unit_ConversionFactor = {
-  toImperial: number;
-  toMetric: number;
-};
-
-export const Unit_ConversionFactorSchema = {
-  name: "Unit_ConversionFactor",
-  embedded: true,
-  properties: {
-    toImperial: "double",
-    toMetric: "double",
-  },
-};
-
-export type Users = {
-  _id: Realm.BSON.ObjectId;
-  activeMealRoutineId?: null | Realm.BSON.ObjectID;
-  diary: Realm.List<User_Diary>;
-  username: string;
-};
-
-export const UsersSchema = {
-  name: "Users",
-  properties: {
-    _id: "objectId",
-    activeMealRoutineId: "mixed",
-    diary: "User_Diary[]",
-    username: "string",
-  },
-  primaryKey: "_id",
-};
-
 export type User_Diary = {
   completionDate: Date;
   mealRoutineId: Realm.BSON.ObjectId;
@@ -260,4 +256,22 @@ export const User_DiarySchema = {
     mealRoutineId: "objectId",
     startDate: "date",
   },
+};
+
+export type Users = {
+  _id: Realm.BSON.ObjectId;
+  activeMealRoutineId?: unknown;
+  diary: User_Diary[];
+  username: string;
+};
+
+export const UsersSchema = {
+  name: "Users",
+  properties: {
+    _id: "objectId",
+    activeMealRoutineId: "mixed",
+    diary: "User_Diary[]",
+    username: "string",
+  },
+  primaryKey: "_id",
 };

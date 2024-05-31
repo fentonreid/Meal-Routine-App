@@ -1,14 +1,14 @@
 import Loading from "@/components/Loading";
 import MealRoutineStateManager from "@/managers/MealRoutineStateManager";
 import { MealRoutineState } from "@/models/enums/MealRoutineState";
+import { View } from "react-native";
 
 const Screen = () => {
-  console.log("IN 2");
   MealRoutineStateManager({
     ignoreCurrentMealRoutineState: [MealRoutineState.SELECTING_MEALS],
   });
 
-  return <Loading />;
+  return <View></View>;
 };
 
 export default Screen;
