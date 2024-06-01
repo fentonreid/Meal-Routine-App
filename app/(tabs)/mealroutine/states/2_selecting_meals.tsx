@@ -1,4 +1,8 @@
-import { Text_CardHeader, Text_TabIconText } from "@/components/TextStyles";
+import {
+  Text_CardHeader,
+  Text_TabIconText,
+  Text_TextBold,
+} from "@/components/TextStyles";
 import Spacings from "@/constants/Spacings";
 import MealRoutineStateManager from "@/managers/MealRoutineStateManager";
 import { ThemeColours } from "@/models/ThemeColours";
@@ -55,10 +59,10 @@ type MealTypeCount = {
 
 interface RenderImageProps {
   imageURI?: string;
-  onPress?: () => void;
+  avatarPlaceholderText?: string;
 }
 
-const RenderImage = ({ imageURI, onPress }: RenderImageProps) => {
+const RenderImage = ({ imageURI, avatarPlaceholderText }: RenderImageProps) => {
   return (
     <TouchableOpacity style={{ borderRadius: 32 }}>
       {imageURI ? (
@@ -77,8 +81,12 @@ const RenderImage = ({ imageURI, onPress }: RenderImageProps) => {
             height: 42,
             backgroundColor: "lightgray",
             borderRadius: 32,
+            justifyContent: "center",
+            alignItems: "center",
           }}
-        ></View>
+        >
+          <Text_TextBold>{avatarPlaceholderText}</Text_TextBold>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -96,7 +104,11 @@ const renderMealAvatars = ({ item }: { item: DailyMeal_Meals }) => {
     item.mealId === null ||
     !item.mealId!.imageURI
   )
-    return <RenderImage />;
+    return (
+      <RenderImage
+        avatarPlaceholderText={item.mealType.charAt(0).toUpperCase()}
+      />
+    );
 
   return <RenderImage imageURI={item.mealId!.imageURI} />;
 };
@@ -118,6 +130,9 @@ const renderDailyItem = ({ item }: { item: MealRoutine_DailyMeals }) => {
       occurrences;
   }
 
+  // Todo: Probably going to have to modify this to strikeout, breakfast, lunch, dinner once they are selected...
+  // Todo: Would make sense to chain them somehow e.g. <Text>Breakfast</Text><Text><Text>,</Text><Text>Lunch</Text>
+
   const formattedMealTypes = Object.entries(mealTypeCounts)
     .map(([mealType, count]) => {
       const name = mealType;
@@ -129,11 +144,11 @@ const renderDailyItem = ({ item }: { item: MealRoutine_DailyMeals }) => {
   return (
     <View
       style={{
-        padding: 12,
+        padding: 6,
         borderRadius: 12,
         borderWidth: 1,
         marginHorizontal: 12,
-        marginVertical: 8,
+        marginVertical: 6,
         flexDirection: "row",
         alignItems: "center",
       }}
@@ -142,9 +157,7 @@ const renderDailyItem = ({ item }: { item: MealRoutine_DailyMeals }) => {
         <Text_CardHeader>
           {item.day}, {dateAsMoment.format("Do")}
         </Text_CardHeader>
-        <Text_TabIconText style={{ textAlign: "right" }}>
-          {formattedMealTypes}
-        </Text_TabIconText>
+        <Text_TabIconText style={{}}>{formattedMealTypes}</Text_TabIconText>
       </View>
       <FlatList
         contentContainerStyle={{
@@ -155,6 +168,7 @@ const renderDailyItem = ({ item }: { item: MealRoutine_DailyMeals }) => {
         horizontal
         data={item.meals}
         renderItem={renderMealAvatars}
+        extraData={item.meals}
       />
     </View>
   );
@@ -180,6 +194,7 @@ const Screen = () => {
           data={activeMealRoutine!.dailyMeals}
           renderItem={renderDailyItem}
           keyExtractor={(item) => item.date.toDateString()}
+          extraData={activeMealRoutine!.dailyMeals}
         />
       </View>
     </>
