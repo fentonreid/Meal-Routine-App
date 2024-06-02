@@ -18,25 +18,33 @@ import { SettingsContext } from "@/store/SettingsContext";
 import { useQuery } from "@realm/react";
 import { Stack } from "expo-router";
 import moment from "moment";
-import { CalendarBlank, Lightning } from "phosphor-react-native";
+import { CalendarBlank, CheckCircle, Lightning } from "phosphor-react-native";
 import { useContext } from "react";
-import { FlatList, TouchableOpacity, View, Text, Image } from "react-native";
+import {
+  FlatList,
+  TouchableOpacity,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+} from "react-native";
 import { Realm } from "@realm/react";
+import { Theme } from "@react-navigation/native";
 
-const createRoutineCustomHeaderLeft = (colours: ThemeColours) => {
-  return (
-    <TouchableOpacity
-      style={{
-        flexDirection: "row",
-        gap: Spacings.mainContainerViewPaddingHalved,
-        justifyContent: "flex-end",
-        alignItems: "center",
-      }}
-    >
-      <CalendarBlank size={24} weight="regular" color={colours.accent} />
-    </TouchableOpacity>
-  );
-};
+// const createRoutineCustomHeaderLeft = (colours: ThemeColours) => {
+//   return (
+//     <TouchableOpacity
+//       style={{
+//         flexDirection: "row",
+//         gap: Spacings.mainContainerViewPaddingHalved,
+//         justifyContent: "flex-end",
+//         alignItems: "center",
+//       }}
+//     >
+//       <CalendarBlank size={24} weight="regular" color={colours.accent} />
+//     </TouchableOpacity>
+//   );
+// };
 
 const createRoutineCustomHeaderRight = (colours: ThemeColours) => {
   return (
@@ -54,7 +62,7 @@ const createRoutineCustomHeaderRight = (colours: ThemeColours) => {
 };
 
 type MealTypeCount = {
-  [mealType: string]: number;
+  [mealType: string]: DailyMeal_Meals[];
 };
 
 interface RenderImageProps {
@@ -113,7 +121,10 @@ const renderMealAvatars = ({ item }: { item: DailyMeal_Meals }) => {
   return <RenderImage imageURI={item.mealId!.imageURI} />;
 };
 
-const renderDailyItem = ({ item }: { item: MealRoutine_DailyMeals }) => {
+const renderDailyItem = (
+  { item }: { item: MealRoutine_DailyMeals },
+  colours: ThemeColours
+) => {
   let dateAsMoment = moment(item.date);
 
   // Get unique mealTypes in the current dailyMeal, this will be useful if more snacks are added
@@ -123,47 +134,83 @@ const renderDailyItem = ({ item }: { item: MealRoutine_DailyMeals }) => {
     // Get the number in daily meals
     let occurrences = item.meals.filter(
       (i) => i.mealType.toUpperCase() === mealType.toUpperCase()
-    ).length;
+    );
 
-    // Lowercase e.g. BREAKFAST to breakfast
-    mealTypeCounts[mealType.charAt(0) + mealType.slice(1).toLowerCase()] =
-      occurrences;
+    mealTypeCounts[mealType] = occurrences;
   }
 
-  // Todo: Probably going to have to modify this to strikeout, breakfast, lunch, dinner once they are selected...
-  // Todo: Would make sense to chain them somehow e.g. <Text>Breakfast</Text><Text><Text>,</Text><Text>Lunch</Text>
+  // Determine if meal category requires underlining since it has been selected
+  const underlineBreakfast =
+    mealTypeCounts["BREAKFAST"].filter(
+      (meal) => meal.mealState === MealState.PENDING_REVIEW
+    ).length > 0;
 
-  const formattedMealTypes = Object.entries(mealTypeCounts)
-    .map(([mealType, count]) => {
-      const name = mealType;
-      return count && count > 1 ? `${name} (${count})` : name;
-    })
-    .join(", ")
-    .replace(/, ([^,]*snack(?:s?))/i, "\n+ $1");
+  const underlineLunch =
+    mealTypeCounts["LUNCH"].filter(
+      (meal) => meal.mealState === MealState.PENDING_REVIEW
+    ).length > 0;
+
+  const underlineDinner =
+    mealTypeCounts["DINNER"].filter(
+      (meal) => meal.mealState === MealState.PENDING_REVIEW
+    ).length > 0;
 
   return (
     <View
       style={{
-        padding: 6,
+        padding: 12,
+        paddingRight: 8,
         borderRadius: 12,
-        borderWidth: 1,
-        marginHorizontal: 12,
+        borderWidth: 0.5,
+        marginHorizontal: 8,
         marginVertical: 6,
         flexDirection: "row",
         alignItems: "center",
+        backgroundColor: colours.light,
       }}
     >
       <View>
-        <Text_CardHeader>
-          {item.day}, {dateAsMoment.format("Do")}
-        </Text_CardHeader>
-        <Text_TabIconText style={{}}>{formattedMealTypes}</Text_TabIconText>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text_CardHeader>
+            {item.day}, {dateAsMoment.format("Do")}
+          </Text_CardHeader>
+          {underlineBreakfast && underlineLunch && underlineBreakfast && (
+            <CheckCircle size={32} color={colours.darkPrimary} weight="fill" />
+          )}
+        </View>
+
+        <View style={{ flexDirection: "row" }}>
+          <Text_TabIconText
+            style={[underlineBreakfast && styles.mealCategoryUnderline]}
+          >
+            Breakfast
+          </Text_TabIconText>
+          <Text_TabIconText>, </Text_TabIconText>
+          <Text_TabIconText
+            style={[underlineLunch && styles.mealCategoryUnderline]}
+          >
+            Lunch
+          </Text_TabIconText>
+          <Text_TabIconText>, </Text_TabIconText>
+          <Text_TabIconText
+            style={[underlineDinner && styles.mealCategoryUnderline]}
+          >
+            Dinner
+          </Text_TabIconText>
+        </View>
+        <Text_TabIconText>
+          {mealTypeCounts["SNACK"].length === 0
+            ? ""
+            : mealTypeCounts["SNACK"].length === 1
+            ? "+ snack"
+            : `+ snacks (${mealTypeCounts["SNACK"]})`}
+        </Text_TabIconText>
       </View>
       <FlatList
         contentContainerStyle={{
+          flexGrow: 1,
           justifyContent: "flex-end",
-          flex: 1,
-          gap: 6,
+          gap: 4,
         }}
         horizontal
         data={item.meals}
@@ -185,14 +232,14 @@ const Screen = () => {
     <>
       <Stack.Screen
         options={{
-          headerLeft: () => createRoutineCustomHeaderLeft(colours),
+          // headerLeft: () => createRoutineCustomHeaderLeft(colours),
           headerRight: () => createRoutineCustomHeaderRight(colours),
         }}
       />
       <View>
         <FlatList
           data={activeMealRoutine!.dailyMeals}
-          renderItem={renderDailyItem}
+          renderItem={(item) => renderDailyItem(item, colours)}
           keyExtractor={(item) => item.date.toDateString()}
           extraData={activeMealRoutine!.dailyMeals}
         />
@@ -200,5 +247,12 @@ const Screen = () => {
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  mealCategoryUnderline: {
+    textDecorationLine: "line-through",
+    textDecorationStyle: "solid",
+  },
+});
 
 export default Screen;
