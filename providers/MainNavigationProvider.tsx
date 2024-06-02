@@ -8,6 +8,7 @@ import { Stack, useRouter } from "expo-router";
 import { useContext, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import FontStyles from "@/constants/FontStyles";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const MainNavigationProvider = () => {
   const { getStartedEnabled, colours, colourTheme } =
@@ -56,20 +57,25 @@ const MainNavigationProvider = () => {
         value={colourTheme === "dark" ? MyDarkTheme : MyLightTheme}
       >
         <StatusBar style={colourTheme === "dark" ? "light" : "dark"} />
-        <Stack
-          screenOptions={{
-            headerTitleStyle: {
-              ...FontStyles.mainHeading,
-              color: colours["mainHeading"],
-            },
-            headerTitleAlign: "center",
-            headerShadowVisible: false,
-          }}
-        >
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(getstarted)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+        <GestureHandlerRootView>
+          <Stack
+            screenOptions={{
+              headerTitleStyle: {
+                ...FontStyles.mainHeading,
+                color: colours["mainHeading"],
+              },
+              headerTitleAlign: "center",
+              headerShadowVisible: false,
+            }}
+          >
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="(getstarted)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </GestureHandlerRootView>
       </ThemeProvider>
     </>
   );

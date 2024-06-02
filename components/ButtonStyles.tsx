@@ -9,6 +9,7 @@ export interface Props {
   backgroundColour?: string;
   activeOpacity?: number;
   disabled?: boolean;
+  enableFlex?: boolean;
   onPress?: () => void;
 }
 
@@ -68,6 +69,7 @@ export const Button_PrimaryThin = (props: Props) => {
       style={[
         styles.thinButtonContainer,
         { backgroundColor: colours["darkPrimary"] },
+        props.style,
       ]}
       onPress={props.onPress}
     >
@@ -90,6 +92,7 @@ export const Button_PrimaryNormal = (props: Props) => {
       style={[
         styles.normalButtonContainer,
         { backgroundColor: colours["darkPrimary"] },
+        props.style,
       ]}
       onPress={props.onPress}
     >
@@ -116,6 +119,7 @@ export const Button_BackgroundThin = (props: Props) => {
           borderWidth: 1,
           borderColor: colours["mainHeading"],
         },
+        props.style,
       ]}
     >
       <CT.Text_SmallerButtonTitle

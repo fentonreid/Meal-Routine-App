@@ -15,11 +15,17 @@ import {
   Meals,
 } from "@/models/schemas/Schemas";
 import { SettingsContext } from "@/store/SettingsContext";
-import { useQuery } from "@realm/react";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import moment from "moment";
 import { CalendarBlank, CheckCircle, Lightning } from "phosphor-react-native";
-import { useContext } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   FlatList,
   TouchableOpacity,
@@ -28,27 +34,45 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { Realm } from "@realm/react";
-import { Theme } from "@react-navigation/native";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
+import {
+  Button_BackgroundThin,
+  Button_PrimaryThin,
+  Button_Wide,
+} from "@/components/ButtonStyles";
 
-// const createRoutineCustomHeaderLeft = (colours: ThemeColours) => {
-//   return (
-//     <TouchableOpacity
-//       style={{
-//         flexDirection: "row",
-//         gap: Spacings.mainContainerViewPaddingHalved,
-//         justifyContent: "flex-end",
-//         alignItems: "center",
-//       }}
-//     >
-//       <CalendarBlank size={24} weight="regular" color={colours.accent} />
-//     </TouchableOpacity>
-//   );
-// };
+const createRoutineCustomHeaderLeft = (
+  colours: ThemeColours,
+  onPress: () => void,
+  finished: boolean
+) => {
+  if (!finished) return <></>;
 
-const createRoutineCustomHeaderRight = (colours: ThemeColours) => {
   return (
     <TouchableOpacity
+      onPress={onPress}
+      style={{
+        flexDirection: "row",
+        gap: Spacings.mainContainerViewPaddingHalved,
+        justifyContent: "flex-end",
+        alignItems: "center",
+      }}
+    >
+      <CheckCircle size={32} weight="fill" color={colours.accent} />
+    </TouchableOpacity>
+  );
+};
+
+const createRoutineCustomHeaderRight = (
+  colours: ThemeColours,
+  onPress: () => void
+) => {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
       style={{
         flexDirection: "row",
         gap: Spacings.mainContainerViewPaddingHalved,
@@ -223,26 +247,190 @@ const renderDailyItem = (
 
 const Screen = () => {
   const { colours } = useContext(SettingsContext);
+  const [finished, setFinished] = useState(false);
+  const [quickAccessToggle, setQuickAccessToggle] = useState(false);
+
+  // Todo: PROBABLY NEED A CUSTOM DATA STRUCTURE FOR THIS...
+  const [quickAccessSelections, setQuickAccessSelections] = useState<string[]>(
+    []
+  );
 
   const activeMealRoutine = MealRoutineStateManager({
     ignoreCurrentMealRoutineState: [MealRoutineState.SELECTING_MEALS],
   });
 
+  // Quick access meal routine bottomSheet properties
+  const quickAccessSnapPoints = useMemo(() => ["15%"], []);
+  const quickAccessSnapPointsBottomSheetRef = useRef<BottomSheet>(null);
+
+  const renderQuickAccessBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        style={{ backgroundColor: colours.background }}
+        {...props}
+      ></BottomSheetBackdrop>
+    ),
+    []
+  );
+
+  // Finish creating meal routine bottomSheet properties
+  const finishSnapPoints = useMemo(() => ["35%"], []);
+  const finishBottomSheetRef = useRef<BottomSheet>(null);
+
+  const renderFinishBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        style={{ backgroundColor: colours.background }}
+        {...props}
+      ></BottomSheetBackdrop>
+    ),
+    []
+  );
+
+  // Bottom sheet open/close handles
+  // Todo: Probably define logic to make sure only one is open at a time...
+  const handleQuickAccessSnapPointsBottomSheetClose = () => {
+    quickAccessSnapPointsBottomSheetRef?.current?.close();
+    setQuickAccessToggle(false);
+  };
+  const handleQuickAccessSnapPointsBottomSheetOpen = () => {
+    quickAccessSnapPointsBottomSheetRef?.current?.expand();
+    setQuickAccessToggle(true);
+  };
+
+  const handleFinishBottomSheetClose = () =>
+    finishBottomSheetRef?.current?.close();
+  const handleFinishBottomSheetOpen = () =>
+    finishBottomSheetRef?.current?.expand();
+
+  // Create a useEffect that monitors the meal state and determines if the final modal should be shown
+  useEffect(() => {
+    let returnEarly = false;
+    // Loop through all meals for each day, exclude snacks from being required
+    for (var dailyMeal of activeMealRoutine!.dailyMeals) {
+      for (var meals of dailyMeal!.meals) {
+        // Skip if snack type
+        if (
+          MealType[meals.mealType as keyof typeof MealType] === MealType.SNACK
+        )
+          continue;
+
+        if (meals.mealState !== MealState.PENDING_REVIEW) returnEarly = true;
+      }
+    }
+
+    setFinished(!returnEarly);
+
+    // Not ready to render the bottom sheet just yet
+    if (returnEarly) return;
+
+    // We are ready
+    //    handleFinishBottomSheetOpen();
+  }, [activeMealRoutine!.dailyMeals]);
+
   return (
     <>
       <Stack.Screen
         options={{
-          // headerLeft: () => createRoutineCustomHeaderLeft(colours),
-          headerRight: () => createRoutineCustomHeaderRight(colours),
+          headerLeft: () =>
+            createRoutineCustomHeaderLeft(
+              colours,
+              handleFinishBottomSheetOpen,
+              finished
+            ),
+          headerRight: () =>
+            createRoutineCustomHeaderRight(
+              colours,
+              quickAccessToggle
+                ? handleQuickAccessSnapPointsBottomSheetClose
+                : handleQuickAccessSnapPointsBottomSheetOpen
+            ),
         }}
       />
       <View>
+        {quickAccessToggle && (
+          <View>
+            <Text>DISPLAY QUICK ACCESS :PPPP</Text>
+          </View>
+        )}
         <FlatList
           data={activeMealRoutine!.dailyMeals}
           renderItem={(item) => renderDailyItem(item, colours)}
           keyExtractor={(item) => item.date.toDateString()}
           extraData={activeMealRoutine!.dailyMeals}
         />
+
+        <BottomSheet
+          ref={quickAccessSnapPointsBottomSheetRef}
+          snapPoints={quickAccessSnapPoints}
+          enablePanDownToClose={true}
+          onClose={() => setQuickAccessToggle(false)}
+          handleComponent={() => <></>}
+          // backdropComponent={renderQuickAccessBackdrop}
+          handleIndicatorStyle={{ backgroundColor: colours.background }}
+          backgroundStyle={{
+            backgroundColor: colours.background,
+          }}
+        >
+          <BottomSheetView
+            style={[
+              styles.quickAccessBottomSheetContainer,
+              {
+                backgroundColor: colours.background,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 12,
+                marginHorizontal: 12,
+              },
+            ]}
+          >
+            <Button_BackgroundThin
+              style={{ flex: 1 }}
+              onPress={handleQuickAccessSnapPointsBottomSheetClose}
+            >
+              Cancel
+            </Button_BackgroundThin>
+            {quickAccessSelections.length !== 0 && (
+              <Button_PrimaryThin style={{ flex: 1 }} onPress={() => {}}>
+                Quick Add
+              </Button_PrimaryThin>
+            )}
+          </BottomSheetView>
+        </BottomSheet>
+
+        <BottomSheet
+          ref={finishBottomSheetRef}
+          snapPoints={finishSnapPoints}
+          enablePanDownToClose={true}
+          index={finished ? 0 : -1}
+          handleComponent={() => <></>}
+          backdropComponent={renderFinishBackdrop}
+          handleIndicatorStyle={{ backgroundColor: colours.background }}
+          backgroundStyle={{ backgroundColor: colours.background }}
+        >
+          <BottomSheetView
+            style={[
+              styles.bottomSheetContainer,
+              { backgroundColor: colours.background },
+            ]}
+          >
+            <Button_Wide
+              onPress={() => {
+                router.replace("mealroutine/states/3_shopping");
+              }}
+            >
+              Confirm Routine
+            </Button_Wide>
+            <Button_BackgroundThin onPress={handleFinishBottomSheetClose}>
+              Make Amendments
+            </Button_BackgroundThin>
+          </BottomSheetView>
+        </BottomSheet>
       </View>
     </>
   );
@@ -252,6 +440,20 @@ const styles = StyleSheet.create({
   mealCategoryUnderline: {
     textDecorationLine: "line-through",
     textDecorationStyle: "solid",
+  },
+
+  bottomSheetContainer: {
+    paddingHorizontal: 48,
+    justifyContent: "space-evenly",
+    flex: 1,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+  },
+
+  quickAccessBottomSheetContainer: {
+    flex: 1,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
   },
 });
 
