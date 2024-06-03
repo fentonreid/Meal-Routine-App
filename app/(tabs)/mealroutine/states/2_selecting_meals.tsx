@@ -131,9 +131,7 @@ const Screen = () => {
   };
 
   const quickAccessSelections = countMealsInState();
-  console.log(quickAccessSelections);
 
-  // Todo: TESTING FOR NOW, HIGHLIGHT ALL MEALS THAT ARE SELECTED...
   const [selectedMeal, setSelectedMeal] = useState<Meals | null>(null);
 
   const handlePress = (meal: Meals) => {
@@ -250,10 +248,6 @@ const Screen = () => {
     onLongPress,
     readyToBeAdded,
   }: RenderImageProps) => {
-    // Todo: Need some logic to determine if the image is pressable
-    // For now I am just going to allow it to be pressable if quick access is enabled, and active index matches the category
-    // e.g. breakfast meal selected so allow all breakfast slots, not currently with a meal to render
-
     return (
       <TouchableOpacity
         onPress={onPress}
@@ -328,6 +322,14 @@ const Screen = () => {
       mapping[activeIndex] !== item.mealType ||
       !quickAccessToggle;
 
+    // If selected meal is null, we are in quick access mode and the meal has been added then we can allow button pressing for deletion
+    if (
+      selectedMeal === null &&
+      quickAccessToggle &&
+      item.mealState === MealState.PENDING_REVIEW
+    )
+      disabled = false;
+
     const addMealToPendingSelection = () => {
       if (selectedMeal === null) return;
 
@@ -339,8 +341,6 @@ const Screen = () => {
     };
 
     const removeMealSelection = () => {
-      if (selectedMeal === null) return;
-
       realm.write(() => {
         item.mealId = undefined;
         item.mealState = MealState.PENDING_MEAL_SELECTION;
