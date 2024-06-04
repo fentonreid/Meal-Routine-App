@@ -28,6 +28,7 @@ export const Button_Wide = (props: Props) => {
         },
       ]}
       onPress={props.onPress}
+      delayPressIn={0}
     >
       <CT.Text_PrimaryButtonText
         style={{ color: colours["buttonText"], textAlign: "center" }}
@@ -50,6 +51,7 @@ export const Button_AccentThin = (props: Props) => {
         props.style,
       ]}
       onPress={props.onPress}
+      delayPressIn={0}
     >
       <CT.Text_SmallerButtonTitle
         style={{ color: colours["buttonText"], textAlign: "center" }}
@@ -72,6 +74,7 @@ export const Button_PrimaryThin = (props: Props) => {
         props.style,
       ]}
       onPress={props.onPress}
+      delayPressIn={0}
     >
       <CT.Text_SmallerButtonTitle
         style={{ color: colours["buttonText"], textAlign: "center" }}
@@ -95,6 +98,7 @@ export const Button_PrimaryNormal = (props: Props) => {
         props.style,
       ]}
       onPress={props.onPress}
+      delayPressIn={0}
     >
       <CT.Text_SmallerButtonTitle
         style={{ color: colours["buttonText"], textAlign: "center" }}
@@ -112,6 +116,7 @@ export const Button_BackgroundThin = (props: Props) => {
     <TouchableOpacity
       activeOpacity={props.activeOpacity ? props.activeOpacity : 0.8}
       onPress={props.onPress}
+      delayPressIn={0}
       style={[
         styles.thinButtonContainer,
         {

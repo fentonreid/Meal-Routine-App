@@ -13,18 +13,17 @@ import { MealType } from "@/models/enums/MealType";
 import {
   DailyMeal_Meals,
   MealRoutine_DailyMeals,
-  MealRoutines,
   Meals,
 } from "@/models/schemas/Schemas";
 import { SettingsContext } from "@/store/SettingsContext";
-import { Stack, router } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import moment from "moment";
-import { CheckCircle, Lightning } from "phosphor-react-native";
+import { CheckCircle, Lightning, PlusCircle } from "phosphor-react-native";
 import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -32,7 +31,6 @@ import {
   FlatList,
   TouchableOpacity,
   View,
-  Text,
   Image,
   StyleSheet,
   ScrollView,
@@ -58,6 +56,7 @@ const createRoutineCustomHeaderLeft = (
   return (
     <TouchableOpacity
       onPress={onPress}
+      delayPressIn={0}
       style={{
         flexDirection: "row",
         gap: Spacings.mainContainerViewPaddingHalved,
@@ -77,6 +76,7 @@ const createRoutineCustomHeaderRight = (
   return (
     <TouchableOpacity
       onPress={onPress}
+      delayPressIn={0}
       style={{
         flexDirection: "row",
         gap: Spacings.mainContainerViewPaddingHalved,
@@ -102,13 +102,67 @@ interface RenderImageProps {
   onLongPress: () => void;
 }
 
+// Determine if meal is disabled or enabled
+const mapping: Record<number, string> = {
+  0: "BREAKFAST",
+  1: "LUNCH",
+  2: "DINNER",
+  3: "SNACK",
+};
+
+// Create a hacky mapping between indexes and categories
+const mapping2: Record<number, string> = {
+  0: "Breakfast",
+  1: "Lunch",
+  2: "Dinner",
+  3: "Snacks",
+};
+
+const countMealsInState = (dailyMeals: MealRoutine_DailyMeals[]): number => {
+  let count = 0;
+
+  dailyMeals.forEach((dailyMeal) => {
+    dailyMeal.meals.forEach((meal) => {
+      if (meal.mealState === MealState.MEAL_READY_TO_BE_ADDED) count++;
+    });
+  });
+
+  return count;
+};
+
+enum MealTypeTEST {
+  BREAKFAST = "BREAKFAST",
+  LUNCH = "LUNCH",
+  DINNER = "DINNER",
+  SNACK = "SNACK",
+}
+
+const sortMealsByMealType = (meals: DailyMeal_Meals[]) => {
+  const mealOrder = {
+    [MealTypeTEST.BREAKFAST]: 1,
+    [MealTypeTEST.LUNCH]: 2,
+    [MealTypeTEST.DINNER]: 3,
+    [MealTypeTEST.SNACK]: 4,
+  };
+
+  // Modify item.meals to sort them into meal type category
+  return Array.from(meals).sort(
+    (a, b) =>
+      mealOrder[a.mealType as MealTypeTEST] -
+      mealOrder[b.mealType as MealTypeTEST]
+  );
+};
+
+const finishSnapPoints = ["35%"];
+
 const Screen = () => {
   const { colours } = useContext(SettingsContext);
   const [finished, setFinished] = useState(false);
   const [quickAccessToggle, setQuickAccessToggle] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
-
+  const flatListScrollRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
   const realm = useRealm();
   const meals = useQuery<Meals>("Meals");
 
@@ -116,30 +170,20 @@ const Screen = () => {
     ignoreCurrentMealRoutineState: [MealRoutineState.SELECTING_MEALS],
   });
 
-  const countMealsInState = (): number => {
-    let count = 0;
-
-    activeMealRoutine!.dailyMeals.forEach((dailyMeal) => {
-      dailyMeal.meals.forEach((meal) => {
-        if (meal.mealState === MealState.MEAL_READY_TO_BE_ADDED) {
-          count++;
-        }
-      });
-    });
-
-    return count;
-  };
-
-  const quickAccessSelections = countMealsInState();
+  const quickAccessSelections = countMealsInState(
+    activeMealRoutine!.dailyMeals
+  );
 
   const [selectedMeal, setSelectedMeal] = useState<Meals | null>(null);
 
-  const handlePress = (meal: Meals) => {
-    setSelectedMeal(meal === selectedMeal ? null : meal);
-  };
+  const handlePress = useCallback(
+    (meal: Meals) => {
+      setSelectedMeal(meal === selectedMeal ? null : meal);
+    },
+    [selectedMeal]
+  );
 
   // Finish creating meal routine bottomSheet properties
-  const finishSnapPoints = useMemo(() => ["35%"], []);
   const finishBottomSheetRef = useRef<BottomSheet>(null);
 
   const renderFinishBackdrop = useCallback(
@@ -151,56 +195,16 @@ const Screen = () => {
         {...props}
       ></BottomSheetBackdrop>
     ),
-    []
+    [colours]
   );
 
-  const handleFinishBottomSheetClose = () =>
+  const handleFinishBottomSheetClose = useCallback(() => {
     finishBottomSheetRef?.current?.close();
-  const handleFinishBottomSheetOpen = () =>
+  }, []);
+
+  const handleFinishBottomSheetOpen = useCallback(() => {
     finishBottomSheetRef?.current?.expand();
-
-  // Create a useEffect that monitors the meal state and determines if the final modal should be shown
-  useEffect(() => {
-    let returnEarly = false;
-    // Loop through all meals for each day, exclude snacks from being required
-    for (var dailyMeal of activeMealRoutine!.dailyMeals) {
-      for (var meals of dailyMeal!.meals) {
-        // Skip if snack type
-        if (
-          MealType[meals.mealType as keyof typeof MealType] === MealType.SNACK
-        )
-          continue;
-
-        if (meals.mealState !== MealState.PENDING_REVIEW) returnEarly = true;
-      }
-    }
-
-    setFinished(!returnEarly);
-
-    // Not ready to render the bottom sheet just yet
-    if (returnEarly) return;
-
-    // We are ready
-    //    handleFinishBottomSheetOpen();
-  }, [activeMealRoutine!.dailyMeals]);
-
-  // Create a useEffect that monitors when the quick access meal type is changed by activeIndex, update the list of meals to render
-  useEffect(() => {
-    // Create a hacky mapping between indexes and categories
-    const mapping: Record<number, string> = {
-      0: "Breakfast",
-      1: "Lunch",
-      2: "Dinner",
-      3: "Snacks",
-    };
-    let filteredMeals: Meals[] = [];
-    for (var meal of meals) {
-      if (meal.categories.includes(mapping[activeIndex]))
-        filteredMeals.push(meal);
-    }
-
-    setFilteredMealsByType(filteredMeals);
-  }, [activeIndex]);
+  }, []);
 
   const renderMeal = ({ item }: { item: Meals }) => {
     return (
@@ -213,13 +217,12 @@ const Screen = () => {
             height: 130,
           },
           selectedMeal === item && {
-            borderColor: colours.primaryButton,
-            borderWidth: 8,
+            borderColor: colours.darkPrimary,
+            borderWidth: 6,
           },
         ]}
-        onPress={() => {
-          handlePress(item);
-        }}
+        onPress={() => handlePress(item)}
+        delayPressIn={0}
       >
         <Image
           style={[
@@ -252,85 +255,66 @@ const Screen = () => {
       <TouchableOpacity
         onPress={onPress}
         onLongPress={onLongPress}
+        delayPressIn={0}
         delayLongPress={100}
         style={[
-          { borderRadius: 32 },
-          readyToBeAdded && {
-            borderStyle: "solid",
-            borderWidth: 4,
-            borderColor: colours.darkPrimary,
+          {
+            borderRadius: 32,
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
           },
         ]}
         disabled={disabled}
       >
-        {imageURI ? (
-          <Image
-            style={[
-              {
-                width: 42,
-                height: 42,
-                borderRadius: 32,
-              },
-              readyToBeAdded && { opacity: 0.5 },
-            ]}
-            source={{ uri: imageURI }}
-          />
-        ) : (
-          <View
-            style={[
-              {
-                width: 42,
-                height: 42,
-                backgroundColor: "lightgray",
-                borderRadius: 32,
-                justifyContent: "center",
-                alignItems: "center",
-              },
-              !disabled && {
-                borderStyle: "dashed",
-                borderWidth: 2,
-                borderColor: colours.accent,
-              },
-              readyToBeAdded && {
-                borderStyle: "solid",
-                borderWidth: 0,
-                borderColor: colours.darkPrimary,
-              },
-            ]}
-          >
-            <Text_TextBold>{avatarPlaceholderText}</Text_TextBold>
-          </View>
-        )}
+        <View
+          style={[
+            { borderRadius: 32 },
+            !disabled && {
+              borderStyle: "dashed",
+              borderWidth: 4,
+              borderColor:
+                selectedMeal === null ? colours.accent : colours.darkPrimary,
+            },
+            readyToBeAdded && {
+              borderStyle: "solid",
+              borderWidth: 4,
+              borderColor: colours.darkPrimary,
+            },
+          ]}
+        >
+          {imageURI ? (
+            <Image
+              style={[
+                {
+                  width: 56,
+                  height: 56,
+                  borderRadius: 32,
+                },
+                readyToBeAdded && { opacity: 0.5 },
+              ]}
+              source={{ uri: imageURI }}
+            />
+          ) : (
+            <View
+              style={[
+                {
+                  width: 56,
+                  height: 56,
+                  backgroundColor: "lightgray",
+                  borderRadius: 32,
+                },
+              ]}
+            ></View>
+          )}
+        </View>
+        <Text_TextBold>{avatarPlaceholderText}</Text_TextBold>
       </TouchableOpacity>
     );
   };
 
-  const renderMealAvatars = ({ item }: { item: DailyMeal_Meals }) => {
-    // Skip if meal type is a snack, as we don't want to display the meal image for this
-    if (MealType[item.mealType as keyof typeof MealType] === MealType.SNACK)
-      return <></>;
-
-    // Determine if meal is disabled or enabled
-    const mapping: Record<number, string> = {
-      0: "BREAKFAST",
-      1: "LUNCH",
-      2: "DINNER",
-    };
-
-    let disabled =
-      selectedMeal === null ||
-      mapping[activeIndex] !== item.mealType ||
-      !quickAccessToggle;
-
-    // If selected meal is null, we are in quick access mode and the meal has been added then we can allow button pressing for deletion
-    if (
-      selectedMeal === null &&
-      quickAccessToggle &&
-      item.mealState === MealState.PENDING_REVIEW
-    )
-      disabled = false;
-
-    const addMealToPendingSelection = () => {
+  const addMealToPendingSelection = useCallback(
+    (item: DailyMeal_Meals) => {
       if (selectedMeal === null) return;
 
       realm.write(() => {
@@ -338,42 +322,104 @@ const Screen = () => {
         item.mealId = selectedMeal;
         item.mealState = MealState.MEAL_READY_TO_BE_ADDED;
       });
-    };
+    },
+    [realm, selectedMeal]
+  );
 
-    const removeMealSelection = () => {
+  const removeMealSelection = useCallback(
+    (item: DailyMeal_Meals, dailyMeals: MealRoutine_DailyMeals) => {
       realm.write(() => {
-        item.mealId = undefined;
-        item.mealState = MealState.PENDING_MEAL_SELECTION;
-      });
-    };
+        // Get meal type occurrence in this daily meal
+        const occurrences = dailyMeals.meals.filter(
+          (dailyMeal) => dailyMeal.mealType === item.mealType
+        ).length;
 
-    // Return an empty image if the meal is yet to be selected or mealId is null
-    if (
-      MealState[item.mealState as keyof typeof MealState] ===
-        MealState.PENDING_MEAL_SELECTION ||
-      item.mealId === null ||
-      !item.mealId!.imageURI
-    )
-      return (
-        <RenderImage
-          avatarPlaceholderText={item.mealType.charAt(0).toUpperCase()}
-          disabled={disabled}
-          onPress={addMealToPendingSelection}
-          onLongPress={removeMealSelection}
-          readyToBeAdded={item.mealState === MealState.MEAL_READY_TO_BE_ADDED}
-        />
-      );
+        // If only one occurrence for this type was found then we can't remove from daily meals, just change state
+        if (occurrences === 1) {
+          item.mealId = undefined;
+          item.mealState = MealState.PENDING_MEAL_SELECTION;
+          return;
+        }
+
+        // Completely remove
+        realm.delete(item);
+      });
+    },
+    [realm]
+  );
+
+  const renderMealAvatars = (
+    { item }: { item: DailyMeal_Meals },
+    dailyMeals: MealRoutine_DailyMeals
+  ) => {
+    let disabled =
+      selectedMeal === null ||
+      mapping[activeIndex] !== item.mealType ||
+      !quickAccessToggle;
+
+    // If selected meal is null, we are in quick access mode and the meal has been added then we can allow button pressing for deletion
+    if (selectedMeal === null && quickAccessToggle) disabled = false;
 
     return (
       <RenderImage
-        imageURI={item.mealId!.imageURI}
+        imageURI={
+          MealState[item.mealState as keyof typeof MealState] ===
+            MealState.PENDING_MEAL_SELECTION ||
+          item.mealId === null ||
+          !item.mealId!.imageURI
+            ? undefined
+            : item.mealId!.imageURI
+        }
         disabled={disabled}
-        onPress={addMealToPendingSelection}
-        onLongPress={removeMealSelection}
+        avatarPlaceholderText={item.mealType.charAt(0).toUpperCase()}
+        onPress={() => addMealToPendingSelection(item)}
+        onLongPress={() => removeMealSelection(item, dailyMeals)}
         readyToBeAdded={item.mealState === MealState.MEAL_READY_TO_BE_ADDED}
       />
     );
   };
+
+  const filterMealByCategoryIndex = useCallback(
+    (index: number) => {
+      // Modify the existing stuff
+      let filteredMeals: Meals[] = [];
+      for (var meal of meals) {
+        if (meal.categories.includes(mapping2[index])) filteredMeals.push(meal);
+      }
+
+      return filteredMeals;
+    },
+    [meals]
+  );
+
+  const addNewMealToDailyMeals = useCallback(
+    (dailyMeals: MealRoutine_DailyMeals) => {
+      // We need to add a completely new meal to this dailymeals list
+      if (selectedMeal === null) return;
+
+      realm.write(() => {
+        // Try and find an occurrence of a meal type that has not been populated
+        const firstValidMealType = dailyMeals.meals.find(
+          (meal) =>
+            meal.mealType === mapping[activeIndex] &&
+            meal.mealState === MealState.PENDING_MEAL_SELECTION
+        );
+        if (firstValidMealType) {
+          (firstValidMealType.mealState = MealState.MEAL_READY_TO_BE_ADDED),
+            (firstValidMealType.mealId = selectedMeal);
+          firstValidMealType.mealType = mapping[activeIndex];
+          return;
+        }
+
+        dailyMeals.meals.push({
+          mealId: selectedMeal,
+          mealState: MealState.MEAL_READY_TO_BE_ADDED,
+          mealType: mapping[activeIndex],
+        });
+      });
+    },
+    [realm, selectedMeal]
+  );
 
   const renderDailyItem = (
     { item }: { item: MealRoutine_DailyMeals },
@@ -409,6 +455,8 @@ const Screen = () => {
         (meal) => meal.mealState === MealState.PENDING_REVIEW
       ).length > 0;
 
+    const sortedItemMeals = sortMealsByMealType(item.meals);
+
     return (
       <View
         style={{
@@ -418,91 +466,123 @@ const Screen = () => {
           borderWidth: 0.5,
           marginHorizontal: 8,
           marginVertical: 6,
-          flexDirection: "row",
-          alignItems: "center",
+          gap: 12,
+          justifyContent: "center",
           backgroundColor: colours.light,
         }}
       >
-        <View>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text_CardHeader>
-              {item.day}, {dateAsMoment.format("Do")}
-            </Text_CardHeader>
-            {underlineBreakfast && underlineLunch && underlineBreakfast && (
-              <CheckCircle
-                size={32}
-                color={colours.darkPrimary}
-                weight="fill"
-              />
-            )}
-          </View>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text_CardHeader>
+                {item.day}, {dateAsMoment.format("Do")}
+              </Text_CardHeader>
+              {underlineBreakfast && underlineLunch && underlineBreakfast && (
+                <CheckCircle
+                  size={32}
+                  color={colours.darkPrimary}
+                  weight="fill"
+                />
+              )}
+            </View>
 
-          <View style={{ flexDirection: "row" }}>
-            <Text_TabIconText
-              style={[underlineBreakfast && styles.mealCategoryUnderline]}
-            >
-              Breakfast
-            </Text_TabIconText>
-            <Text_TabIconText>, </Text_TabIconText>
-            <Text_TabIconText
-              style={[underlineLunch && styles.mealCategoryUnderline]}
-            >
-              Lunch
-            </Text_TabIconText>
-            <Text_TabIconText>, </Text_TabIconText>
-            <Text_TabIconText
-              style={[underlineDinner && styles.mealCategoryUnderline]}
-            >
-              Dinner
-            </Text_TabIconText>
+            <View style={{ flexDirection: "row" }}>
+              <Text_TabIconText
+                style={[underlineBreakfast && styles.mealCategoryUnderline]}
+              >
+                Breakfast
+              </Text_TabIconText>
+              <Text_TabIconText>, </Text_TabIconText>
+              <Text_TabIconText
+                style={[underlineLunch && styles.mealCategoryUnderline]}
+              >
+                Lunch
+              </Text_TabIconText>
+              <Text_TabIconText>, </Text_TabIconText>
+              <Text_TabIconText
+                style={[underlineDinner && styles.mealCategoryUnderline]}
+              >
+                Dinner
+              </Text_TabIconText>
+              <Text_TabIconText>, </Text_TabIconText>
+              <Text_TabIconText>
+                {mealTypeCounts["SNACK"].length === 0
+                  ? ""
+                  : mealTypeCounts["SNACK"].length === 1
+                  ? "Snack"
+                  : `Snacks (${mealTypeCounts["SNACK"].length})`}
+              </Text_TabIconText>
+            </View>
           </View>
-          <Text_TabIconText>
-            {mealTypeCounts["SNACK"].length === 0
-              ? ""
-              : mealTypeCounts["SNACK"].length === 1
-              ? "+ snack"
-              : `+ snacks (${mealTypeCounts["SNACK"]})`}
-          </Text_TabIconText>
+          {quickAccessToggle && selectedMeal && (
+            <TouchableOpacity
+              onPress={() => {
+                addNewMealToDailyMeals(item);
+              }}
+            >
+              <PlusCircle size={56} weight="regular" color={colours.accent} />
+            </TouchableOpacity>
+          )}
         </View>
+
         <FlatList
           contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: "flex-end",
             gap: 4,
           }}
           horizontal
-          data={item.meals}
-          renderItem={renderMealAvatars}
+          scrollEnabled={true}
+          data={sortedItemMeals}
+          renderItem={(innerItem) => renderMealAvatars(innerItem, item)}
           extraData={item.meals}
         />
       </View>
     );
   };
 
-  const handleMealCategoryChange = (index: number) => {
-    // Clear all selected indices since we have changed category
-    setSelectedMeal(null);
+  const handleMealCategoryChange = useCallback(
+    (index: number) => {
+      // Modify the existing stuff
+      setFilteredMealsByType(filterMealByCategoryIndex(index));
 
-    // Set new active index
-    setActiveIndex(index);
-  };
+      // Clear all selected indices since we have changed category
+      setSelectedMeal(null);
 
-  const handleQuickAccessToggle = () => {
+      // Set new active index
+      setActiveIndex(index);
+
+      // Reset scroll between category switching
+      flatListScrollRef.current?.scrollToOffset({ offset: 0 });
+    },
+    [meals]
+  );
+
+  const handleQuickAccessToggle = useCallback(() => {
     setActiveIndex(0);
     setSelectedMeal(null);
     setQuickAccessToggle((prev) => !prev);
 
+    if (quickAccessSelections === 0) return;
+
+    // I need to remove any extra meals that are yet to be added
+
     realm.write(() => {
       activeMealRoutine!.dailyMeals.forEach((dailyMeal) =>
         dailyMeal.meals.forEach((meal) => {
-          if (meal.mealState === MealState.MEAL_READY_TO_BE_ADDED)
+          if (meal.mealState === MealState.MEAL_READY_TO_BE_ADDED) {
             meal.mealState = MealState.PENDING_MEAL_SELECTION;
+          }
         })
       );
     });
-  };
+  }, [realm, activeMealRoutine!.dailyMeals]);
 
-  const handleQuickAccessAdd = () => {
+  const handleQuickAccessAdd = useCallback(() => {
     setActiveIndex(0);
     setSelectedMeal(null);
     setQuickAccessToggle((prev) => !prev);
@@ -515,213 +595,246 @@ const Screen = () => {
         })
       );
     });
-  };
+  }, [realm, activeMealRoutine!.dailyMeals]);
+
+  const RenderMealCategoryScrollView = () => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{
+        paddingHorizontal: 12,
+        alignItems: "center",
+        gap: 2,
+      }}
+    >
+      <TouchableOpacity
+        key={0}
+        onPress={() => handleMealCategoryChange(0)}
+        delayPressIn={0}
+        style={
+          activeIndex === 0
+            ? [
+                styles.segmentButtonActive,
+                {
+                  backgroundColor: colours.darkPrimary,
+                  borderTopLeftRadius: 8,
+                  borderBottomLeftRadius: 8,
+                },
+              ]
+            : [
+                styles.segmentButton,
+                {
+                  backgroundColor: colours.secondary,
+                  borderTopLeftRadius: 8,
+                  borderBottomLeftRadius: 8,
+                },
+              ]
+        }
+      >
+        {activeIndex === 0 ? (
+          <Text_TextBold style={{ color: colours.buttonText }}>
+            Breakfast
+          </Text_TextBold>
+        ) : (
+          <Text_Text>Breakfast</Text_Text>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        key={1}
+        onPress={() => handleMealCategoryChange(1)}
+        delayPressIn={0}
+        style={
+          activeIndex === 1
+            ? [
+                styles.segmentButtonActive,
+                { backgroundColor: colours.darkPrimary },
+              ]
+            : [styles.segmentButton, { backgroundColor: colours.secondary }]
+        }
+      >
+        {activeIndex === 1 ? (
+          <Text_TextBold style={{ color: colours.buttonText }}>
+            Lunch
+          </Text_TextBold>
+        ) : (
+          <Text_Text>Lunch</Text_Text>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        key={2}
+        onPress={() => handleMealCategoryChange(2)}
+        delayPressIn={0}
+        style={
+          activeIndex === 2
+            ? [
+                styles.segmentButtonActive,
+                { backgroundColor: colours.darkPrimary },
+              ]
+            : [styles.segmentButton, { backgroundColor: colours.secondary }]
+        }
+      >
+        {activeIndex === 2 ? (
+          <Text_TextBold style={{ color: colours.buttonText }}>
+            Dinner
+          </Text_TextBold>
+        ) : (
+          <Text_Text>Dinner</Text_Text>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        key={3}
+        onPress={() => handleMealCategoryChange(3)}
+        delayPressIn={0}
+        style={
+          activeIndex === 3
+            ? [
+                styles.segmentButtonActive,
+                {
+                  backgroundColor: colours.darkPrimary,
+                  borderTopRightRadius: 8,
+                  borderBottomRightRadius: 8,
+                },
+              ]
+            : [
+                styles.segmentButton,
+                {
+                  backgroundColor: colours.secondary,
+                  borderTopRightRadius: 8,
+                  borderBottomRightRadius: 8,
+                },
+              ]
+        }
+      >
+        {activeIndex === 3 ? (
+          <Text_TextBold style={{ color: colours.buttonText }}>
+            Snacks
+          </Text_TextBold>
+        ) : (
+          <Text_Text>Snacks</Text_Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
+  );
+
+  // Create a useEffect that monitors the meal state and determines if the final modal should be shown
+  useLayoutEffect(() => {
+    let returnEarly = false;
+    // Loop through all meals for each day, exclude snacks from being required
+    for (var dailyMeal of activeMealRoutine!.dailyMeals) {
+      for (var meals of dailyMeal!.meals) {
+        // Skip if snack type
+        if (
+          MealType[meals.mealType as keyof typeof MealType] === MealType.SNACK
+        )
+          continue;
+
+        if (meals.mealState !== MealState.PENDING_REVIEW) returnEarly = true;
+      }
+    }
+
+    setFinished(!returnEarly);
+
+    // Not ready to render the bottom sheet just yet
+    if (returnEarly) return;
+
+    // We are ready
+    //    handleFinishBottomSheetOpen();
+  }, [activeMealRoutine!.dailyMeals]);
+
+  // Custom stack header, based on finished and quick access states
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () =>
+        createRoutineCustomHeaderLeft(
+          colours,
+          handleFinishBottomSheetOpen,
+          finished
+        ),
+
+      headerRight: () =>
+        createRoutineCustomHeaderRight(
+          colours,
+          quickAccessToggle
+            ? () => setQuickAccessToggle((prev) => !prev)
+            : handleQuickAccessToggle
+        ),
+    });
+  }, [navigation, quickAccessToggle, finished]);
+
+  // Initial population of the filtered quick access meals
+  useEffect(() => {
+    setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
+  }, []);
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerLeft: () =>
-            createRoutineCustomHeaderLeft(
-              colours,
-              handleFinishBottomSheetOpen,
-              finished
-            ),
-          headerRight: () =>
-            createRoutineCustomHeaderRight(colours, handleQuickAccessToggle),
+    <View style={{ flex: 1 }}>
+      <View
+        style={{
+          flex: quickAccessToggle ? 1 / 2 : 0,
+          backgroundColor: colours.background,
+          borderWidth: 0.5,
+          borderColor: "lightgray",
+          justifyContent: "space-around",
         }}
+      >
+        <View style={{ flex: 1, gap: 8 }}>
+          <RenderMealCategoryScrollView />
+          <FlatList
+            horizontal
+            ref={flatListScrollRef}
+            data={filteredMealsByType}
+            extraData={[meals, filteredMealsByType]}
+            initialNumToRender={4}
+            contentContainerStyle={{
+              gap: 12,
+              paddingHorizontal: 12,
+            }}
+            renderItem={renderMeal}
+            keyExtractor={(item) => item._id.toString()}
+          />
+        </View>
+      </View>
+
+      <FlatList
+        data={activeMealRoutine!.dailyMeals}
+        extraData={activeMealRoutine!.dailyMeals}
+        renderItem={(item) => renderDailyItem(item, colours)}
+        keyExtractor={(item) => item.date.toDateString()}
+        style={{ flex: quickAccessToggle ? 1 / 2 : 0 }}
       />
 
-      <View style={{ flex: 1 }}>
-        {quickAccessToggle ? (
-          <>
-            <View
-              style={{
-                flex: 1 / 2,
-                backgroundColor: colours.background,
-                borderWidth: 0.5,
-                borderColor: "lightgray",
-                justifyContent: "space-around",
-              }}
-            >
-              <View style={{ flex: 1, gap: 8 }}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingHorizontal: 12,
-                    alignItems: "center",
-                    gap: 2,
-                  }}
-                >
-                  <TouchableOpacity
-                    key={0}
-                    onPress={() => handleMealCategoryChange(0)}
-                    style={
-                      activeIndex === 0
-                        ? [
-                            styles.segmentButtonActive,
-                            {
-                              backgroundColor: colours.darkPrimary,
-                              borderTopLeftRadius: 8,
-                              borderBottomLeftRadius: 8,
-                            },
-                          ]
-                        : [
-                            styles.segmentButton,
-                            {
-                              backgroundColor: colours.secondary,
-                              borderTopLeftRadius: 8,
-                              borderBottomLeftRadius: 8,
-                            },
-                          ]
-                    }
-                  >
-                    {activeIndex === 0 ? (
-                      <Text_TextBold style={{ color: colours.buttonText }}>
-                        Breakfast
-                      </Text_TextBold>
-                    ) : (
-                      <Text_Text>Breakfast</Text_Text>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    key={1}
-                    onPress={() => handleMealCategoryChange(1)}
-                    style={
-                      activeIndex === 1
-                        ? [
-                            styles.segmentButtonActive,
-                            { backgroundColor: colours.darkPrimary },
-                          ]
-                        : [
-                            styles.segmentButton,
-                            { backgroundColor: colours.secondary },
-                          ]
-                    }
-                  >
-                    {activeIndex === 1 ? (
-                      <Text_TextBold style={{ color: colours.buttonText }}>
-                        Lunch
-                      </Text_TextBold>
-                    ) : (
-                      <Text_Text>Lunch</Text_Text>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    key={2}
-                    onPress={() => handleMealCategoryChange(2)}
-                    style={
-                      activeIndex === 2
-                        ? [
-                            styles.segmentButtonActive,
-                            { backgroundColor: colours.darkPrimary },
-                          ]
-                        : [
-                            styles.segmentButton,
-                            { backgroundColor: colours.secondary },
-                          ]
-                    }
-                  >
-                    {activeIndex === 2 ? (
-                      <Text_TextBold style={{ color: colours.buttonText }}>
-                        Dinner
-                      </Text_TextBold>
-                    ) : (
-                      <Text_Text>Dinner</Text_Text>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    key={3}
-                    onPress={() => handleMealCategoryChange(3)}
-                    style={
-                      activeIndex === 3
-                        ? [
-                            styles.segmentButtonActive,
-                            {
-                              backgroundColor: colours.darkPrimary,
-                              borderTopRightRadius: 8,
-                              borderBottomRightRadius: 8,
-                            },
-                          ]
-                        : [
-                            styles.segmentButton,
-                            {
-                              backgroundColor: colours.secondary,
-                              borderTopRightRadius: 8,
-                              borderBottomRightRadius: 8,
-                            },
-                          ]
-                    }
-                  >
-                    {activeIndex === 3 ? (
-                      <Text_TextBold style={{ color: colours.buttonText }}>
-                        Snacks
-                      </Text_TextBold>
-                    ) : (
-                      <Text_Text>Snacks</Text_Text>
-                    )}
-                  </TouchableOpacity>
-                </ScrollView>
-                <FlatList
-                  horizontal
-                  data={filteredMealsByType}
-                  contentContainerStyle={{
-                    gap: 12,
-                    paddingHorizontal: 12,
-                  }}
-                  renderItem={renderMeal}
-                  keyExtractor={(item) => item._id.toString()}
-                  extraData={meals}
-                >
-                  <Text>RENDER THE MEALS HERE</Text>
-                </FlatList>
-              </View>
-            </View>
-
-            <FlatList
-              data={activeMealRoutine!.dailyMeals}
-              renderItem={(item) => renderDailyItem(item, colours)}
-              keyExtractor={(item) => item.date.toDateString()}
-              style={{ flex: 1 / 2 }}
-              extraData={activeMealRoutine!.dailyMeals}
-            />
-            <View
-              style={{
-                borderWidth: 0.5,
-                borderColor: "lightgray",
-                flex: 1 / 6,
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 12,
-                paddingHorizontal: 12,
-              }}
-            >
-              <Button_BackgroundThin
-                style={{ flex: 1 }}
-                onPress={handleQuickAccessToggle}
-              >
-                Cancel
-              </Button_BackgroundThin>
-              {quickAccessSelections > 0 && (
-                <Button_PrimaryThin
-                  style={{ flex: 1 }}
-                  onPress={handleQuickAccessAdd}
-                >
-                  Quick Add
-                </Button_PrimaryThin>
-              )}
-            </View>
-          </>
-        ) : (
-          <FlatList
-            style={{ flex: 1 }}
-            data={activeMealRoutine!.dailyMeals}
-            renderItem={(item) => renderDailyItem(item, colours)}
-            keyExtractor={(item) => item.date.toDateString()}
-            extraData={activeMealRoutine!.dailyMeals}
-          />
+      <View
+        style={{
+          borderWidth: 0.5,
+          borderColor: "lightgray",
+          flex: quickAccessToggle ? 1 / 6 : 0,
+          display: quickAccessToggle ? "flex" : "none",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 12,
+          paddingHorizontal: 12,
+        }}
+      >
+        <Button_BackgroundThin
+          style={{
+            flex: 1,
+          }}
+          onPress={handleQuickAccessToggle}
+        >
+          Cancel
+        </Button_BackgroundThin>
+        {quickAccessToggle && quickAccessSelections > 0 && (
+          <Button_PrimaryThin
+            style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: colours.darkPrimary,
+            }}
+            onPress={handleQuickAccessAdd}
+          >
+            Quick Add
+          </Button_PrimaryThin>
         )}
       </View>
       <BottomSheet
@@ -756,7 +869,7 @@ const Screen = () => {
           </Button_BackgroundThin>
         </BottomSheetView>
       </BottomSheet>
-    </>
+    </View>
   );
 };
 
