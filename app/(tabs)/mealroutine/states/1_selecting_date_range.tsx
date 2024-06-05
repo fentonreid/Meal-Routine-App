@@ -92,7 +92,7 @@ const Screen = () => {
       });
 
       // Manually change to next route
-      router.replace("mealroutine/states/2_selecting_meals");
+      router.replace("mealroutine/states/2_selecting_meals_quick_access");
     },
     [activeMealRoutine, realm]
   );

@@ -24,8 +24,12 @@ const MealRoutineStack = () => {
         options={{ headerTitle: "Date Selection" }}
       />
       <Stack.Screen
-        name="states/2_selecting_meals"
+        name="states/2_selecting_meals_quick_access"
         options={{ headerTitle: "Create Routine" }}
+      />
+      <Stack.Screen
+        name="states/2_selecting_meals_day"
+        options={{ headerTitle: "..." }}
       />
       <Stack.Screen
         name="states/3_shopping"

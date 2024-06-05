@@ -34,7 +34,7 @@ const MealRoutineStateManager = ({ ignoreCurrentMealRoutineState }: Props) => {
         break;
 
       case MealRoutineState.SELECTING_MEALS:
-        router.replace("mealroutine/states/2_selecting_meals");
+        router.replace("mealroutine/states/2_selecting_meals_day");
         break;
 
       case MealRoutineState.SHOPPING:

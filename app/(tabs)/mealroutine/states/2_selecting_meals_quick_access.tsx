@@ -158,7 +158,7 @@ const finishSnapPoints = ["35%"];
 const Screen = () => {
   const { colours } = useContext(SettingsContext);
   const [finished, setFinished] = useState(false);
-  const [quickAccessToggle, setQuickAccessToggle] = useState(true);
+  const [quickAccessToggle, setQuickAccessToggle] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
   const flatListScrollRef = useRef<FlatList>(null);
@@ -422,7 +422,7 @@ const Screen = () => {
   );
 
   const renderDailyItem = (
-    { item }: { item: MealRoutine_DailyMeals },
+    { item, index }: { item: MealRoutine_DailyMeals; index: number },
     colours: ThemeColours
   ) => {
     let dateAsMoment = moment(item.date);
@@ -458,7 +458,16 @@ const Screen = () => {
     const sortedItemMeals = sortMealsByMealType(item.meals);
 
     return (
-      <View
+      <TouchableOpacity
+        disabled={quickAccessToggle}
+        activeOpacity={0.7}
+        onLongPress={() =>
+          router.replace({
+            pathname: "mealroutine/states/2_selecting_meals_day",
+            params: { dayIndex: index },
+          })
+        }
+        delayLongPress={300}
         style={{
           padding: 12,
           paddingRight: 8,
@@ -541,7 +550,7 @@ const Screen = () => {
           renderItem={(innerItem) => renderMealAvatars(innerItem, item)}
           extraData={item.meals}
         />
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -771,6 +780,7 @@ const Screen = () => {
       <View
         style={{
           flex: quickAccessToggle ? 1 / 2 : 0,
+          display: quickAccessToggle ? "flex" : "none",
           backgroundColor: colours.background,
           borderWidth: 0.5,
           borderColor: "lightgray",
