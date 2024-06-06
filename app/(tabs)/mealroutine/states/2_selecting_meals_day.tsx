@@ -7,10 +7,23 @@ import {
 } from "@/models/schemas/Schemas";
 import { SettingsContext } from "@/store/SettingsContext";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { useContext, useEffect, useLayoutEffect, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import { StyleSheet, View, SectionList, Image } from "react-native";
 import { useQuery, useRealm } from "@realm/react";
-import { Heart, ListMagnifyingGlass, PlusCircle } from "phosphor-react-native";
+import {
+  CheckCircle,
+  Heart,
+  ListMagnifyingGlass,
+  PlusCircle,
+  Star,
+  StarHalf,
+} from "phosphor-react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import moment from "moment";
 import Loading from "@/components/Loading";
@@ -22,12 +35,12 @@ import {
   Text_TextBold,
 } from "@/components/TextStyles";
 import { MealState } from "@/models/enums/MealState";
+import SwipeableRow from "@/components/SwipeableRow";
 
 const Screen = () => {
   const { colours } = useContext(SettingsContext);
   const navigation = useNavigation();
   const realm = useRealm();
-  const meals = useQuery<Meals>("Meals");
   const [currentDayRoutine, setCurrentDayRoutine] =
     useState<MealRoutine_DailyMeals | null>(null);
 
@@ -76,8 +89,10 @@ const Screen = () => {
   }, [navigation, currentDayRoutine]);
 
   const groupMealsByType = (meals: DailyMeal_Meals[]) => {
+    const mealOrder = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
+
     const groupedMeals: { [key: string]: DailyMeal_Meals[] } = meals.reduce(
-      (acc: any, meal) => {
+      (acc: { [key: string]: DailyMeal_Meals[] }, meal) => {
         const { mealType } = meal;
         if (!acc[mealType]) {
           acc[mealType] = [];
@@ -88,75 +103,150 @@ const Screen = () => {
       {}
     );
 
-    return Object.keys(groupedMeals).map((mealType) => ({
+    return mealOrder.map((mealType) => ({
       title: mealType,
-      data: groupedMeals[mealType],
+      data: groupedMeals[mealType] || [],
     }));
   };
-
   if (!currentDayRoutine) return <Loading />;
 
-  const renderSectionHeader = ({ section: { title } }: any) => (
-    <View
-      style={{
-        flex: 1,
-        borderTopLeftRadius: 8,
-        borderTopRightRadius: 8,
-        backgroundColor: colours.light,
-        paddingHorizontal: 12,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Text_CardHeader>{title}</Text_CardHeader>
-        <TouchableOpacity>
-          <PlusCircle size={36} color={colours.accent} />
-        </TouchableOpacity>
-      </View>
-      <View
-        style={{
-          height: 2,
-          backgroundColor: colours.secondary,
-          marginTop: 6,
-        }}
-      ></View>
-    </View>
-  );
-
-  const RenderSingleMealItem = ({ item }: { item: DailyMeal_Meals }) => {
-    const heartFilled = true;
+  const renderSectionHeader = ({
+    section: { title, data },
+  }: {
+    section: {
+      title: string;
+      data: DailyMeal_Meals[];
+    };
+  }) => {
+    const numberOfCompleteMeals = data.filter(
+      (i) => i.mealState === MealState.PENDING_REVIEW
+    );
 
     return (
       <View
         style={{
-          margin: 6,
-          backgroundColor: colours.background,
-          borderRadius: 8,
-          padding: 8,
-          gap: 16,
+          flex: 1,
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+          backgroundColor: colours.light,
+          paddingHorizontal: 12,
         }}
       >
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Text_ListText>{item.mealId!.name}</Text_ListText>
-          <Heart
-            size={24}
-            weight={heartFilled ? "fill" : "regular"}
-            color={heartFilled ? colours.accentButton : colours.text}
-          />
-        </View>
-
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 4,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text_CardHeader>{title}</Text_CardHeader>
+            {numberOfCompleteMeals && numberOfCompleteMeals.length >= 1 && (
+              <CheckCircle size={28} weight="fill" color={colours.primary} />
+            )}
+          </View>
+        </View>
+        <View
+          style={{
+            height: 2,
+            backgroundColor: colours.secondary,
+            marginTop: 6,
+          }}
+        ></View>
+      </View>
+    );
+  };
+
+  const RenderRating = ({ rating }: { rating: number }) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (rating >= i) {
+        // Full star
+        stars.push(
+          <Star
+            style={{ flex: 1 }}
+            size={24}
+            weight="fill"
+            color={colours.accentButton}
+          />
+        );
+      } else if (rating >= i - 0.5) {
+        // Half star
+        stars.push(
+          <StarHalf
+            style={{ flex: 1 }}
+            size={24}
+            weight="fill"
+            color={colours.accentButton}
+          />
+        );
+      } else {
+        // Empty star
+        stars.push(
+          <Star
+            style={{ flex: 1 }}
+            size={24}
+            weight="regular"
+            color={colours.text}
+          />
+        );
+      }
+    }
+
+    return stars;
+  };
+
+  const RenderSingleMealItem = ({
+    item,
+    mealsOfSameType,
+  }: {
+    item: DailyMeal_Meals;
+    mealsOfSameType: DailyMeal_Meals[];
+  }) => {
+    const heartFilled = true;
+    const hasTasteRating = true;
+
+    return (
+      <SwipeableRow
+        colours={colours}
+        handleView={() => {
+          console.log("GO TO SPECIFIC MEAL BY ID...");
+        }}
+        handleDelete={() => {
+          removeMealSelection(item, mealsOfSameType);
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+            marginVertical: 6,
+            flexDirection: "row",
+            backgroundColor: colours.background,
+            borderRadius: 8,
+            padding: 8,
+            gap: 16,
           }}
         >
           <View style={{ flex: 3 }}>
+            <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
+              <Text_ListText style={{ flex: 3 }}>
+                {item.mealId!.name}
+              </Text_ListText>
+              <Heart
+                style={{ flex: 1 }}
+                size={24}
+                weight={heartFilled ? "fill" : "regular"}
+                color={heartFilled ? colours.accentButton : colours.text}
+              />
+            </View>
+
             <View
               style={{
                 flexDirection: "row",
@@ -165,11 +255,16 @@ const Screen = () => {
                 marginLeft: 6,
               }}
             >
-              <Text_TabIconText>Taste: </Text_TabIconText>
-              <Text_TabIconText style={{ color: colours.accent }}>
-                No rating
-              </Text_TabIconText>
+              <Text_TabIconText>Taste:</Text_TabIconText>
+              {hasTasteRating ? (
+                <RenderRating rating={4.5} />
+              ) : (
+                <Text_TabIconText style={{ color: colours.accent }}>
+                  No rating
+                </Text_TabIconText>
+              )}
             </View>
+
             <View
               style={{
                 flexDirection: "row",
@@ -179,28 +274,47 @@ const Screen = () => {
               }}
             >
               <Text_TabIconText>Effort: </Text_TabIconText>
-              <Text_TabIconText style={{ color: colours.accent }}>
-                No rating
-              </Text_TabIconText>
+              {hasTasteRating ? (
+                <RenderRating rating={3} />
+              ) : (
+                <Text_TabIconText style={{ color: colours.accent }}>
+                  No rating
+                </Text_TabIconText>
+              )}
             </View>
           </View>
-          {item.mealId!.imageURI ? (
-            <View style={{ flex: 1, borderRadius: 36 }}>
-              <Image
-                style={{
-                  flex: 1,
-                  borderRadius: 36,
-                }}
-                resizeMode="contain"
-                source={{ uri: item.mealId!.imageURI }}
-              />
-            </View>
-          ) : (
-            <Text_Text>NO IMAGE</Text_Text>
-          )}
+
+          <Image
+            style={{
+              flex: 1,
+            }}
+            resizeMode="contain"
+            source={{ uri: item.mealId!.imageURI }}
+          />
         </View>
-      </View>
+      </SwipeableRow>
     );
+  };
+
+  const removeMealSelection = (
+    item: DailyMeal_Meals,
+    mealsOfSameType: DailyMeal_Meals[]
+  ) => {
+    realm.write(() => {
+      const occurrences = mealsOfSameType.filter(
+        (meal) => meal.mealType === item.mealType
+      ).length;
+
+      // If only one occurrence for this type was found then we can't remove from daily meals, just change state
+      if (occurrences === 1) {
+        item.mealId = undefined;
+        item.mealState = MealState.PENDING_MEAL_SELECTION;
+        return;
+      }
+
+      // Completely remove
+      realm.delete(item);
+    });
   };
 
   const renderDayRoutine = ({
@@ -236,7 +350,7 @@ const Screen = () => {
       >
         {noCompletedMealsForThisMealType &&
         noCompletedMealsForThisMealType.length !== section.data.length ? (
-          <RenderSingleMealItem item={item} />
+          <RenderSingleMealItem item={item} mealsOfSameType={section.data} />
         ) : (
           <Text_Text>Nothing to show</Text_Text>
         )}
@@ -298,7 +412,7 @@ const Screen = () => {
           sections={groupMealsByType(currentDayRoutine!.meals)}
           renderItem={renderDayRoutine}
           renderSectionHeader={renderSectionHeader}
-          extraData={currentDayRoutine}
+          extraData={currentDayRoutine!.meals}
           renderSectionFooter={renderSectionFooter}
           contentContainerStyle={{
             paddingHorizontal: 12,
