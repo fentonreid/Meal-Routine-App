@@ -7,6 +7,7 @@ import {
 } from "@/models/schemas/Schemas";
 import { SettingsContext } from "@/store/SettingsContext";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 import {
   useCallback,
   useContext,
@@ -25,6 +26,8 @@ import {
 } from "react-native";
 import { useQuery, useRealm } from "@realm/react";
 import {
+  ArrowRight,
+  CaretRight,
   CheckCircle,
   Heart,
   ListMagnifyingGlass,
@@ -41,6 +44,7 @@ import Loading from "@/components/Loading";
 import {
   Text_CardHeader,
   Text_ListText,
+  Text_MainHeading,
   Text_TabIconText,
   Text_Text,
   Text_TextBold,
@@ -57,6 +61,7 @@ import { MealType } from "@/models/enums/MealType";
 import { SearchBar } from "react-native-screens";
 
 const selectMealsSnapPoints = ["100%"];
+const filterMealsSnapPoints = ["100%"];
 
 // Determine if meal is disabled or enabled
 const mapping: Record<number, string> = {
@@ -81,6 +86,8 @@ const Screen = () => {
   const [currentDayRoutine, setCurrentDayRoutine] =
     useState<MealRoutine_DailyMeals | null>(null);
   const [selectMealsToggle, setSelectMealsToggle] = useState<boolean>(true);
+  const [filterMealsToggle, setFilterMealsToggle] = useState<boolean>(true);
+  const filterMealsBottomSheetRef = useRef<BottomSheet>(null);
   const selectMealsBottomSheetRef = useRef<BottomSheet>(null);
   const meals = useQuery<Meals>("Meals");
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
@@ -123,21 +130,58 @@ const Screen = () => {
   }, [dayIndex]);
 
   // Define required header
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!filterMealsToggle) {
+      navigation.setOptions({
+        headerTitle: currentDayRoutine
+          ? `${currentDayRoutine!.day}, ${moment(
+              currentDayRoutine!.date
+            ).format("Do")}`
+          : "",
+        headerLeft: () => <></>,
+        headerRight: !selectMealsToggle ? headerRight : () => <></>,
+      });
+      return;
+    }
+
+    // Handle when it does filter
     navigation.setOptions({
-      headerTitle: currentDayRoutine
-        ? `${currentDayRoutine!.day}, ${moment(currentDayRoutine!.date).format(
-            "Do"
-          )}`
-        : "",
-      headerRight: !selectMealsToggle ? headerRight : () => <></>,
+      headerTitle: "Sort & Filter",
+      headerLeft: () => <CustomHeaderLeftForFilter />,
+      headerRight: () => <CustomHeaderRightForFilter />,
     });
-  }, [navigation, currentDayRoutine, selectMealsToggle]);
+  }, [navigation, currentDayRoutine, selectMealsToggle, filterMealsToggle]);
 
   // Initial population of the filtered quick access meals
   useEffect(() => {
     setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
   }, []);
+
+  const CustomHeaderLeftForFilter = () => {
+    return (
+      <TouchableOpacity
+        style={{ paddingTop: 8 }}
+        onPress={handleFilterMealsBottomSheetClose}
+      >
+        <Text_TextBold style={{ color: colours.accentButton }}>
+          Cancel
+        </Text_TextBold>
+      </TouchableOpacity>
+    );
+  };
+
+  const CustomHeaderRightForFilter = () => {
+    return (
+      <TouchableOpacity
+        style={{ paddingTop: 8 }}
+        onPress={() => {
+          console.log("RESET...");
+        }}
+      >
+        <Text_Text>Reset</Text_Text>
+      </TouchableOpacity>
+    );
+  };
 
   const groupMealsByType = (meals: DailyMeal_Meals[]) => {
     const mealOrder = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
@@ -169,6 +213,16 @@ const Screen = () => {
   const handleSelectMealsBottomSheetOpen = useCallback(() => {
     setSelectMealsToggle(true);
     selectMealsBottomSheetRef?.current?.expand();
+  }, []);
+
+  const handleFilterMealsBottomSheetClose = useCallback(() => {
+    setFilterMealsToggle(false);
+    filterMealsBottomSheetRef?.current?.close();
+  }, []);
+
+  const handleFilterMealsBottomSheetOpen = useCallback(() => {
+    setFilterMealsToggle(true);
+    filterMealsBottomSheetRef?.current?.expand();
   }, []);
 
   const renderSectionHeader = ({
@@ -746,7 +800,7 @@ const Screen = () => {
     handleSelectMealsBottomSheetClose();
   };
 
-  const RenderSelectMealsBottomSheet = () => {
+  const RenderSelectMealsBottomSheetContent = () => {
     return (
       <BottomSheetView
         style={{
@@ -792,9 +846,7 @@ const Screen = () => {
               />
             </View>
             <TouchableOpacity
-              onPress={() => {
-                console.log("FILTER...");
-              }}
+              onPress={handleFilterMealsBottomSheetOpen}
               style={{ marginLeft: 6 }}
             >
               <Sliders
@@ -869,6 +921,177 @@ const Screen = () => {
     );
   };
 
+  const RenderFilterMealsBottomSheetContent = () => {
+    return (
+      <View style={{ flex: 1, justifyContent: "space-between" }}>
+        <ScrollView
+          contentContainerStyle={{
+            backgroundColor: colours.background,
+          }}
+        >
+          <View
+            style={{
+              gap: 24,
+            }}
+          >
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                margin: 12,
+                backgroundColor: colours.light,
+                borderRadius: 12,
+                elevation: 0.2,
+              }}
+            >
+              <Text_MainHeading style={{ paddingBottom: 12 }}>
+                Sort
+              </Text_MainHeading>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>Taste (High-Low)</Text_Text>
+                <View>
+                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                </View>
+              </View>
+
+              <View
+                style={{
+                  marginVertical: 8,
+                  height: 2,
+                  backgroundColor: colours.secondary,
+                }}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>Effort (High-Low)</Text_Text>
+                <View>
+                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                margin: 12,
+                backgroundColor: colours.light,
+                borderRadius: 12,
+                elevation: 0.2,
+              }}
+            >
+              <Text_MainHeading style={{ paddingBottom: 12 }}>
+                Filter
+              </Text_MainHeading>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>Added by you (1)</Text_Text>
+                <View>
+                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                </View>
+              </View>
+
+              <View
+                style={{
+                  marginVertical: 8,
+                  height: 2,
+                  backgroundColor: colours.secondary,
+                }}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>Made before (5)</Text_Text>
+                <View>
+                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                </View>
+              </View>
+
+              <View
+                style={{
+                  marginVertical: 8,
+                  height: 2,
+                  backgroundColor: colours.secondary,
+                }}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>Taste (12)</Text_Text>
+                <TouchableOpacity style={{ flexDirection: "row", gap: 4 }}>
+                  <Text_Text>ANY</Text_Text>
+                  <CaretRight size={24} color={colours.accentButton} />
+                </TouchableOpacity>
+              </View>
+
+              <View
+                style={{
+                  marginVertical: 8,
+                  height: 2,
+                  backgroundColor: colours.secondary,
+                }}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>Effort (10)</Text_Text>
+                <TouchableOpacity style={{ flexDirection: "row", gap: 4 }}>
+                  <Text_Text>ANY</Text_Text>
+                  <CaretRight size={24} color={colours.accentButton} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        <View
+          style={{
+            borderTopWidth: 0.5,
+            borderColor: "lightgray",
+          }}
+        >
+          <Button_PrimaryThin style={{ margin: 12 }}>
+            Show (28) Results
+          </Button_PrimaryThin>
+        </View>
+      </View>
+    );
+  };
+
   if (!currentDayRoutine) return <Loading />;
 
   return (
@@ -896,13 +1119,14 @@ const Screen = () => {
                     item.date.toDateString() !==
                     currentDayRoutine!.date.toDateString()
                       ? "lightgray"
-                      : colours.accentButton,
+                      : colours.darkPrimary,
                   borderRadius: 60,
                 }}
               >
                 <Text_TextBold
                   style={[
-                    item === currentDayRoutine && {
+                    item.date.toDateString() ===
+                      currentDayRoutine.date.toDateString() && {
                       color: colours.light,
                     },
                   ]}
@@ -946,7 +1170,19 @@ const Screen = () => {
         handleIndicatorStyle={{ backgroundColor: colours.background }}
         backgroundStyle={{ backgroundColor: colours.background }}
       >
-        <RenderSelectMealsBottomSheet />
+        <RenderSelectMealsBottomSheetContent />
+      </BottomSheet>
+
+      <BottomSheet
+        ref={filterMealsBottomSheetRef}
+        snapPoints={filterMealsSnapPoints}
+        index={filterMealsToggle ? 0 : -1}
+        enableContentPanningGesture={false}
+        handleComponent={() => <></>}
+        handleIndicatorStyle={{ backgroundColor: colours.background }}
+        backgroundStyle={{ backgroundColor: colours.background }}
+      >
+        <RenderFilterMealsBottomSheetContent />
       </BottomSheet>
     </View>
   );
