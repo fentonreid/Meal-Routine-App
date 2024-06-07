@@ -29,7 +29,7 @@ const MealRoutineStack = () => {
       />
       <Stack.Screen
         name="states/2_selecting_meals_day"
-        options={{ headerTitle: "..." }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="states/3_shopping"

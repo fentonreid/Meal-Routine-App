@@ -458,16 +458,7 @@ const Screen = () => {
     const sortedItemMeals = sortMealsByMealType(item.meals);
 
     return (
-      <TouchableOpacity
-        disabled={quickAccessToggle}
-        activeOpacity={0.7}
-        onLongPress={() =>
-          router.replace({
-            pathname: "mealroutine/states/2_selecting_meals_day",
-            params: { dayIndex: index },
-          })
-        }
-        delayLongPress={300}
+      <View
         style={{
           padding: 12,
           paddingRight: 8,
@@ -487,7 +478,17 @@ const Screen = () => {
             justifyContent: "space-between",
           }}
         >
-          <View>
+          <TouchableOpacity
+            disabled={quickAccessToggle}
+            activeOpacity={0.7}
+            delayLongPress={300}
+            onLongPress={() =>
+              router.replace({
+                pathname: "mealroutine/states/2_selecting_meals_day",
+                params: { dayIndex: index },
+              })
+            }
+          >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text_CardHeader>
                 {item.day}, {dateAsMoment.format("Do")}
@@ -528,7 +529,7 @@ const Screen = () => {
                   : `Snacks (${mealTypeCounts["SNACK"].length})`}
               </Text_TabIconText>
             </View>
-          </View>
+          </TouchableOpacity>
           {quickAccessToggle && selectedMeal && (
             <TouchableOpacity
               onPress={() => {
@@ -550,7 +551,7 @@ const Screen = () => {
           renderItem={(innerItem) => renderMealAvatars(innerItem, item)}
           extraData={item.meals}
         />
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -837,7 +838,7 @@ const Screen = () => {
         {quickAccessToggle && quickAccessSelections > 0 && (
           <Button_PrimaryThin
             style={{
-              flex: 1,
+              flex: 2,
               borderWidth: 1,
               borderColor: colours.darkPrimary,
             }}
