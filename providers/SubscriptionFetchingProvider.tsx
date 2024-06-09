@@ -39,6 +39,7 @@ const SubscriptionFetchingProvider = () => {
         initialSubscriptions: {
           rerunOnOpen: true,
           update: (mutableSubs, realm) => {
+            console.log("HERE???");
             mutableSubs.add(
               realm
                 .objects("Users")
@@ -92,6 +93,8 @@ const SubscriptionFetchingProvider = () => {
                 .objects("Reviews")
                 .filtered("creatorId == $0", new ObjectId(user!.id))
             );
+
+            console.log(realm.objects("Reviews").length);
           },
         },
         onError: (_, error) => {

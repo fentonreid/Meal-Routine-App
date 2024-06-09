@@ -1,18 +1,21 @@
+import { RangeSlider } from "@react-native-assets/slider";
 import MealRoutineStateManager from "@/managers/MealRoutineStateManager";
 import { MealRoutineState } from "@/models/enums/MealRoutineState";
 import {
   DailyMeal_Meals,
   MealRoutine_DailyMeals,
   Meals,
+  Reviews,
+  Users,
 } from "@/models/schemas/Schemas";
 import { SettingsContext } from "@/store/SettingsContext";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import {
-  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -26,17 +29,15 @@ import {
 } from "react-native";
 import { useQuery, useRealm } from "@realm/react";
 import {
-  ArrowRight,
-  CaretRight,
   CheckCircle,
   Heart,
   ListMagnifyingGlass,
   MagnifyingGlass,
   PlusCircle,
   Sliders,
-  SlidersHorizontal,
   Star,
   StarHalf,
+  XCircle,
 } from "phosphor-react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import moment from "moment";
@@ -55,10 +56,9 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import {
   Button_BackgroundThin,
   Button_PrimaryThin,
-  Button_Wide,
 } from "@/components/ButtonStyles";
-import { MealType } from "@/models/enums/MealType";
 import { SearchBar } from "react-native-screens";
+import { ThemeColours } from "@/models/ThemeColours";
 
 const selectMealsSnapPoints = ["100%"];
 const filterMealsSnapPoints = ["100%"];
@@ -79,6 +79,86 @@ const mapping2: Record<number, string> = {
   3: "Snacks",
 };
 
+enum SortFilter {
+  TASTE,
+  EFFORT,
+}
+
+enum FilterFilter {
+  ADDEDBYYOU,
+  MADEBEFORE,
+  TASTE,
+  EFFORT,
+}
+
+const RenderRating = ({
+  rating,
+  colours,
+}: {
+  rating: number;
+  colours: ThemeColours;
+}) => {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    if (rating >= i) {
+      // Full star
+      stars.push(
+        <Star
+          style={{ flex: 1 }}
+          size={24}
+          weight="fill"
+          color={colours.accentButton}
+        />
+      );
+    } else if (rating >= i - 0.5) {
+      // Half star
+      stars.push(
+        <StarHalf
+          style={{ flex: 1 }}
+          size={24}
+          weight="fill"
+          color={colours.accentButton}
+        />
+      );
+    } else {
+      // Empty star
+      stars.push(
+        <Star
+          style={{ flex: 1 }}
+          size={24}
+          weight="regular"
+          color={colours.accent}
+        />
+      );
+    }
+  }
+
+  return stars;
+};
+
+const mealOrder = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
+
+const RenderSectionFooter = ({
+  section,
+}: {
+  section: { title: string; data: DailyMeal_Meals[] };
+}) => {
+  if (section.title === "SNACK") return null;
+
+  return (
+    <View
+      style={{
+        height: 24,
+      }}
+    />
+  );
+};
+
+interface DailyMeal {
+  meal: Meals;
+  mealType: string;
+}
+
 const Screen = () => {
   const { colours } = useContext(SettingsContext);
   const navigation = useNavigation();
@@ -90,11 +170,19 @@ const Screen = () => {
   const filterMealsBottomSheetRef = useRef<BottomSheet>(null);
   const selectMealsBottomSheetRef = useRef<BottomSheet>(null);
   const meals = useQuery<Meals>("Meals");
+  const [filteredMeals, setFilteredMeals] = useState<any>(meals);
+  const [tasteRange, setTasteRange] = useState<[number, number]>([0, 5]);
+  const [effortRange, setEffortRange] = useState<[number, number]>([0, 5]);
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListScrollRef = useRef<FlatList>(null);
   const [selectedMeals, setSelectedMeals] = useState<DailyMeal[]>([]);
   const [searchText, setSearchText] = useState<string>("");
+  const [sortFilters, setSortFilters] = useState<SortFilter[]>([]);
+  const [filterFilters, setFilterFilters] = useState<FilterFilter[]>([]);
+
+  const user = useQuery<Users>("Users")[0];
+  const reviews = useQuery<Reviews>("Reviews").sorted([["creationDate", true]]);
 
   const activeMealRoutine = MealRoutineStateManager({
     ignoreCurrentMealRoutineState: [MealRoutineState.SELECTING_MEALS],
@@ -175,7 +263,10 @@ const Screen = () => {
       <TouchableOpacity
         style={{ paddingTop: 8 }}
         onPress={() => {
-          console.log("RESET...");
+          setSortFilters([]);
+          setFilterFilters([]);
+          setTasteRange([0, 5]);
+          setEffortRange([0, 5]);
         }}
       >
         <Text_Text>Reset</Text_Text>
@@ -184,8 +275,6 @@ const Screen = () => {
   };
 
   const groupMealsByType = (meals: DailyMeal_Meals[]) => {
-    const mealOrder = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
-
     const groupedMeals: { [key: string]: DailyMeal_Meals[] } = meals.reduce(
       (acc: { [key: string]: DailyMeal_Meals[] }, meal) => {
         const { mealType } = meal;
@@ -204,26 +293,26 @@ const Screen = () => {
     }));
   };
 
-  const handleSelectMealsBottomSheetClose = useCallback(() => {
+  const handleSelectMealsBottomSheetClose = () => {
     setSelectMealsToggle(false);
     setSelectedMeals([]);
     selectMealsBottomSheetRef?.current?.close();
-  }, []);
+  };
 
-  const handleSelectMealsBottomSheetOpen = useCallback(() => {
+  const handleSelectMealsBottomSheetOpen = () => {
     setSelectMealsToggle(true);
     selectMealsBottomSheetRef?.current?.expand();
-  }, []);
+  };
 
-  const handleFilterMealsBottomSheetClose = useCallback(() => {
+  const handleFilterMealsBottomSheetClose = () => {
     setFilterMealsToggle(false);
     filterMealsBottomSheetRef?.current?.close();
-  }, []);
+  };
 
-  const handleFilterMealsBottomSheetOpen = useCallback(() => {
+  const handleFilterMealsBottomSheetOpen = () => {
     setFilterMealsToggle(true);
     filterMealsBottomSheetRef?.current?.expand();
-  }, []);
+  };
 
   const renderSectionHeader = ({
     section: { title, data },
@@ -279,43 +368,25 @@ const Screen = () => {
     );
   };
 
-  const RenderRating = ({ rating }: { rating: number }) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      if (rating >= i) {
-        // Full star
-        stars.push(
-          <Star
-            style={{ flex: 1 }}
-            size={24}
-            weight="fill"
-            color={colours.accentButton}
-          />
-        );
-      } else if (rating >= i - 0.5) {
-        // Half star
-        stars.push(
-          <StarHalf
-            style={{ flex: 1 }}
-            size={24}
-            weight="fill"
-            color={colours.accentButton}
-          />
-        );
-      } else {
-        // Empty star
-        stars.push(
-          <Star
-            style={{ flex: 1 }}
-            size={24}
-            weight="regular"
-            color={colours.accent}
-          />
-        );
-      }
-    }
+  const getHeartRatingOfMeal = (item: Meals) => {
+    const rating = reviews.find(
+      (review) => review.mealId.toString() === item._id.toString()
+    );
+    return rating ? rating.makeAgain : false;
+  };
 
-    return stars;
+  const getTasteRatingOfMeal = (item: Meals) => {
+    const rating = reviews.find(
+      (review) => review.mealId.toString() === item._id.toString()
+    );
+    return rating ? rating.taste : null;
+  };
+
+  const getEffortRatingOfMeal = (item: Meals) => {
+    const rating = reviews.find(
+      (review) => review.mealId.toString() === item._id.toString()
+    );
+    return rating ? rating.effort : null;
   };
 
   const RenderSingleMealItem = ({
@@ -325,8 +396,11 @@ const Screen = () => {
     item: DailyMeal_Meals;
     mealsOfSameType: DailyMeal_Meals[];
   }) => {
-    const heartFilled = true;
-    const hasTasteRating = true;
+    const heartFilled = item.mealId ? getHeartRatingOfMeal(item.mealId) : false;
+    const tasteRating = item.mealId ? getTasteRatingOfMeal(item.mealId) : null;
+    const effortRating = item.mealId
+      ? getEffortRatingOfMeal(item.mealId)
+      : null;
 
     return (
       <SwipeableRow
@@ -369,8 +443,8 @@ const Screen = () => {
               }}
             >
               <Text_TabIconText>Taste:</Text_TabIconText>
-              {hasTasteRating ? (
-                <RenderRating rating={4.5} />
+              {tasteRating !== null ? (
+                <RenderRating rating={tasteRating} colours={colours} />
               ) : (
                 <Text_TabIconText style={{ color: colours.accent }}>
                   No rating
@@ -387,8 +461,8 @@ const Screen = () => {
               }}
             >
               <Text_TabIconText>Effort: </Text_TabIconText>
-              {hasTasteRating ? (
-                <RenderRating rating={3} />
+              {effortRating !== null ? (
+                <RenderRating rating={effortRating} colours={colours} />
               ) : (
                 <Text_TabIconText style={{ color: colours.accent }}>
                   No rating
@@ -472,54 +546,34 @@ const Screen = () => {
     );
   };
 
-  const filterMealByCategoryIndex = useCallback(
-    (index: number) => {
-      // Modify the existing stuff
-      let filteredMeals: Meals[] = [];
-      for (var meal of meals) {
-        if (meal.categories.includes(mapping2[index])) filteredMeals.push(meal);
-      }
+  const filterMealByCategoryIndex = (index: number) => {
+    // Modify the existing stuff
+    let newMeals: Meals[] = [];
+    for (var meal of filteredMeals) {
+      if (meal.categories.includes(mapping2[index])) newMeals.push(meal);
+    }
 
-      return filteredMeals;
-    },
-    [meals]
-  );
-
-  const RenderSectionFooter = ({
-    section,
-  }: {
-    section: { title: string; data: DailyMeal_Meals[] };
-  }) => {
-    if (section.title === "SNACK") return null;
-
-    return (
-      <View
-        style={{
-          height: 24,
-        }}
-      />
-    );
+    return newMeals;
   };
 
-  const handleMealCategoryChange = useCallback(
-    (index: number) => {
-      // Modify the existing stuff
-      setFilteredMealsByType(filterMealByCategoryIndex(index));
+  // Whenever filteredMeals changes trigger an update to the meal list
+  useEffect(() => {
+    setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
+  }, [filteredMeals]);
 
-      // // Clear all selected indices since we have changed category
-      // setSelectedMeals([]);
+  const handleMealCategoryChange = (index: number) => {
+    // Modify the existing stuff
+    setFilteredMealsByType(filterMealByCategoryIndex(index));
 
-      // Clear search text input
-      setSearchText("");
+    // Clear search text input
+    setSearchText("");
 
-      // Set new active index
-      setActiveIndex(index);
+    // Set new active index
+    setActiveIndex(index);
 
-      // Reset scroll between category switching
-      flatListScrollRef.current?.scrollToOffset({ offset: 0 });
-    },
-    [meals]
-  );
+    // Reset scroll between category switching
+    flatListScrollRef.current?.scrollToOffset({ offset: 0 });
+  };
 
   const RenderMealCategoryScrollView = () => (
     <ScrollView
@@ -640,12 +694,7 @@ const Screen = () => {
     </ScrollView>
   );
 
-  interface DailyMeal {
-    meal: Meals;
-    mealType: string;
-  }
-
-  const handleMealPress = useCallback((dailyMeal: DailyMeal) => {
+  const handleMealPress = (dailyMeal: DailyMeal) => {
     setSelectedMeals((prevSelectedMeals) => {
       const isSelected = prevSelectedMeals.find(
         (meal) =>
@@ -663,11 +712,18 @@ const Screen = () => {
           )
         : [...prevSelectedMeals, dailyMeal];
     });
-  }, []);
+  };
 
   const RenderSingleMealFlatList = ({ item }: { item: Meals }) => {
-    const heartFilled = true;
-    const hasTasteRating = true;
+    const heartFilled = getHeartRatingOfMeal(item);
+    const tasteRating = getTasteRatingOfMeal(item);
+    const effortRating = getEffortRatingOfMeal(item);
+
+    const isSelected = selectedMeals.some(
+      (i) =>
+        i.meal._id.toString() === item._id.toString() &&
+        i.mealType === mapping[activeIndex]
+    );
 
     return (
       <TouchableOpacity
@@ -684,11 +740,7 @@ const Screen = () => {
             padding: 8,
             gap: 16,
           },
-          selectedMeals.find(
-            (i) =>
-              i.meal._id.toString() === item._id.toString() &&
-              i.mealType === mapping[activeIndex]
-          ) && {
+          isSelected && {
             borderWidth: 6,
             borderColor: colours.darkPrimary,
           },
@@ -714,8 +766,8 @@ const Screen = () => {
             }}
           >
             <Text_TabIconText>Taste:</Text_TabIconText>
-            {hasTasteRating ? (
-              <RenderRating rating={4.5} />
+            {tasteRating !== null ? (
+              <RenderRating rating={tasteRating} colours={colours} />
             ) : (
               <Text_TabIconText style={{ color: colours.accent }}>
                 No rating
@@ -732,8 +784,8 @@ const Screen = () => {
             }}
           >
             <Text_TabIconText>Effort: </Text_TabIconText>
-            {hasTasteRating ? (
-              <RenderRating rating={3} />
+            {effortRating !== null ? (
+              <RenderRating rating={effortRating} colours={colours} />
             ) : (
               <Text_TabIconText style={{ color: colours.accent }}>
                 No rating
@@ -770,9 +822,6 @@ const Screen = () => {
   };
 
   const addMeals = () => {
-    // Take the selected meals list and add
-    // Loop through each meal add modify the type
-
     realm.write(() => {
       // For each selected meal
       for (var selectedMeal of selectedMeals) {
@@ -845,16 +894,32 @@ const Screen = () => {
                 value={searchText}
               />
             </View>
-            <TouchableOpacity
-              onPress={handleFilterMealsBottomSheetOpen}
-              style={{ marginLeft: 6 }}
-            >
-              <Sliders
-                size={32}
-                color={colours.accent}
-                style={{ transform: [{ rotate: "90deg" }] }}
-              />
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                onPress={handleFilterMealsBottomSheetOpen}
+                style={{ marginLeft: 6 }}
+              >
+                <Sliders
+                  size={32}
+                  color={colours.accent}
+                  style={{ transform: [{ rotate: "90deg" }] }}
+                />
+              </TouchableOpacity>
+              {(sortFilters.length > 0 || filterFilters.length > 0) && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSortFilters([]);
+                    setFilterFilters([]);
+                    setTasteRange([0, 5]);
+                    setEffortRange([0, 5]);
+                    setFilteredMeals(meals);
+                  }}
+                  style={{ marginLeft: 6 }}
+                >
+                  <XCircle size={32} color={colours.accent} />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           <View
@@ -880,46 +945,162 @@ const Screen = () => {
               keyExtractor={(item) => item._id.toString()}
             />
           </View>
-        </View>
-
-        <View
-          style={{
-            borderTopWidth: 0.5,
-            borderColor: "lightgray",
-            flex: 1 / 10,
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 12,
-            paddingHorizontal: 12,
-          }}
-        >
-          <Button_BackgroundThin
+          <View
             style={{
-              flex: 1,
+              borderTopWidth: 0.5,
+              borderColor: "lightgray",
+              flex: 1 / 10,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 12,
+              paddingHorizontal: 12,
             }}
-            onPress={handleSelectMealsBottomSheetClose}
           >
-            Cancel
-          </Button_BackgroundThin>
-          {selectMealsToggle && selectedMeals.length > 0 && (
-            <Button_PrimaryThin
+            <Button_BackgroundThin
               style={{
-                flex: 2,
-                borderWidth: 1,
-                borderColor: colours.darkPrimary,
+                flex: 1,
               }}
-              onPress={addMeals}
+              onPress={handleSelectMealsBottomSheetClose}
             >
-              {selectMealsToggle && selectedMeals.length > 1
-                ? `Add Meals (${selectedMeals.length})`
-                : "Add Meal"}
-            </Button_PrimaryThin>
-          )}
+              Cancel
+            </Button_BackgroundThin>
+            {selectMealsToggle && selectedMeals.length > 0 && (
+              <Button_PrimaryThin
+                style={{
+                  flex: 2,
+                  borderWidth: 1,
+                  borderColor: colours.darkPrimary,
+                }}
+                onPress={addMeals}
+              >
+                {selectMealsToggle && selectedMeals.length > 1
+                  ? `Add Meals (${selectedMeals.length})`
+                  : "Add Meal"}
+              </Button_PrimaryThin>
+            )}
+          </View>
         </View>
       </BottomSheetView>
     );
   };
+
+  const updateSortFilter = (isChecked: boolean, sortFilter: SortFilter) => {
+    // If checked then check if it already has been added
+    if (isChecked) {
+      setSortFilters((prevFilters) => [...prevFilters, sortFilter]);
+      return;
+    }
+
+    setSortFilters((prevFilters) =>
+      prevFilters.filter((filter) => filter !== sortFilter)
+    );
+  };
+
+  const updateFilterFilters = (
+    isChecked: boolean,
+    filterFilter: FilterFilter
+  ) => {
+    // If checked then check if it already has been added
+    if (isChecked) {
+      setFilterFilters((prevFilters) => [...prevFilters, filterFilter]);
+      return;
+    }
+
+    setFilterFilters((prevFilters) =>
+      prevFilters.filter((filter) => filter !== filterFilter)
+    );
+  };
+
+  const handleFiltering = () => {
+    // Don't filter if no filtering was applied
+    if (sortFilters.length === 0 && filterFilters.length === 0) return;
+
+    // Define proper filtering
+    // Todo: Implement...
+
+    const filteredResults = meals.filter(
+      (item) => item.name === "Tortang Talong"
+    );
+
+    setFilteredMeals(filteredResults);
+    handleFilterMealsBottomSheetClose();
+  };
+
+  const getMealCountWithFilter = (filter: FilterFilter) => {
+    let filtered = null;
+    let uniqueMealIds = new Set();
+    let uniqueReviews = [];
+
+    switch (filter) {
+      case FilterFilter.ADDEDBYYOU:
+        filtered = meals.filter(
+          (meal) => meal.creatorId !== null && meal.creatorId === user._id
+        );
+
+        return filtered ? filtered.length : 0;
+
+      case FilterFilter.MADEBEFORE:
+        filtered = meals.filter(
+          (meal) => meal.creatorId !== null && meal.creatorId === user._id
+        );
+
+        return filtered ? filtered.length : 0;
+
+      case FilterFilter.TASTE:
+        filtered = reviews.filter(
+          (review) =>
+            review.taste >= tasteRange[0] && review.taste <= tasteRange[1]
+        );
+
+        uniqueMealIds = new Set();
+        uniqueReviews = [];
+
+        filtered.forEach((review) => {
+          if (!uniqueMealIds.has(review.mealId.toString())) {
+            uniqueMealIds.add(review.mealId.toString());
+            uniqueReviews.push(review);
+          }
+        });
+
+        return uniqueReviews.length;
+
+      case FilterFilter.EFFORT:
+        filtered = reviews.filter(
+          (review) =>
+            review.effort >= effortRange[0] && review.effort <= effortRange[1]
+        );
+
+        uniqueMealIds = new Set();
+        uniqueReviews = [];
+
+        filtered.forEach((review) => {
+          if (!uniqueMealIds.has(review.mealId.toString())) {
+            uniqueMealIds.add(review.mealId.toString());
+            uniqueReviews.push(review);
+          }
+        });
+
+        return uniqueReviews.length;
+
+      default:
+        return 0;
+    }
+  };
+  const [tasteCount, setTasteCount] = useState(
+    getMealCountWithFilter(FilterFilter.TASTE)
+  );
+  const [effortCount, setEffortCount] = useState(
+    getMealCountWithFilter(FilterFilter.EFFORT)
+  );
+
+  useEffect(() => {
+    setTasteCount(getMealCountWithFilter(FilterFilter.TASTE));
+  }, [tasteRange]);
+
+  useEffect(() => {
+    setEffortCount(getMealCountWithFilter(FilterFilter.EFFORT));
+  }, [effortCount]);
 
   const RenderFilterMealsBottomSheetContent = () => {
     return (
@@ -957,7 +1138,12 @@ const Screen = () => {
               >
                 <Text_Text>Taste (High-Low)</Text_Text>
                 <View>
-                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                  <BouncyCheckbox
+                    isChecked={sortFilters.includes(SortFilter.TASTE)}
+                    onPress={(isChecked: boolean) => {
+                      updateSortFilter(isChecked, SortFilter.TASTE);
+                    }}
+                  />
                 </View>
               </View>
 
@@ -978,7 +1164,12 @@ const Screen = () => {
               >
                 <Text_Text>Effort (High-Low)</Text_Text>
                 <View>
-                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                  <BouncyCheckbox
+                    isChecked={sortFilters.includes(SortFilter.EFFORT)}
+                    onPress={(isChecked: boolean) => {
+                      updateSortFilter(isChecked, SortFilter.EFFORT);
+                    }}
+                  />
                 </View>
               </View>
             </View>
@@ -1004,7 +1195,39 @@ const Screen = () => {
                   alignItems: "center",
                 }}
               >
-                <Text_Text>Added by you (1)</Text_Text>
+                <Text_Text>
+                  Added by you (
+                  {getMealCountWithFilter(FilterFilter.ADDEDBYYOU)})
+                </Text_Text>
+                <View>
+                  <BouncyCheckbox
+                    isChecked={filterFilters.includes(FilterFilter.ADDEDBYYOU)}
+                    onPress={(isChecked: boolean) => {
+                      updateFilterFilters(isChecked, FilterFilter.ADDEDBYYOU);
+                    }}
+                  />
+                </View>
+              </View>
+
+              <View
+                style={{
+                  marginVertical: 8,
+                  height: 2,
+                  backgroundColor: colours.secondary,
+                }}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text_Text>
+                  Made before ({getMealCountWithFilter(FilterFilter.MADEBEFORE)}
+                  )
+                </Text_Text>
                 <View>
                   <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
                 </View>
@@ -1025,9 +1248,23 @@ const Screen = () => {
                   alignItems: "center",
                 }}
               >
-                <Text_Text>Made before (5)</Text_Text>
-                <View>
-                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
+                <Text_Text>Taste ({tasteCount})</Text_Text>
+                <View style={{ flex: 2 / 3, paddingRight: 12 }}>
+                  <RangeSlider
+                    range={tasteRange}
+                    minimumValue={0}
+                    maximumValue={5}
+                    step={0.5}
+                    minimumRange={0}
+                    crossingAllowed={false}
+                    outboundColor={colours.secondary}
+                    inboundColor={colours.lightPrimary}
+                    thumbTintColor={colours.darkPrimary}
+                    trackHeight={8}
+                    thumbSize={18}
+                    slideOnTap={true}
+                    onValueChange={setTasteRange}
+                  />
                 </View>
               </View>
 
@@ -1046,33 +1283,24 @@ const Screen = () => {
                   alignItems: "center",
                 }}
               >
-                <Text_Text>Taste (12)</Text_Text>
-                <TouchableOpacity style={{ flexDirection: "row", gap: 4 }}>
-                  <Text_Text>ANY</Text_Text>
-                  <CaretRight size={24} color={colours.accentButton} />
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={{
-                  marginVertical: 8,
-                  height: 2,
-                  backgroundColor: colours.secondary,
-                }}
-              />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>Effort (10)</Text_Text>
-                <TouchableOpacity style={{ flexDirection: "row", gap: 4 }}>
-                  <Text_Text>ANY</Text_Text>
-                  <CaretRight size={24} color={colours.accentButton} />
-                </TouchableOpacity>
+                <Text_Text>Effort ({effortCount})</Text_Text>
+                <View style={{ flex: 2 / 3, paddingRight: 12 }}>
+                  <RangeSlider
+                    range={effortRange}
+                    minimumValue={0}
+                    maximumValue={5}
+                    step={0.5}
+                    minimumRange={0}
+                    crossingAllowed={false}
+                    outboundColor={colours.secondary}
+                    inboundColor={colours.lightPrimary}
+                    thumbTintColor={colours.darkPrimary}
+                    trackHeight={8}
+                    thumbSize={18}
+                    slideOnTap={true}
+                    onValueChange={setEffortRange}
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -1084,11 +1312,28 @@ const Screen = () => {
             borderColor: "lightgray",
           }}
         >
-          <Button_PrimaryThin style={{ margin: 12 }}>
-            Show (28) Results
+          <Button_PrimaryThin
+            onPress={() => handleFiltering()}
+            style={{ margin: 12 }}
+          >
+            Show Results
           </Button_PrimaryThin>
         </View>
       </View>
+    );
+  };
+
+  const AddMealComponent = () => {
+    return (
+      <TouchableOpacity
+        onPress={handleSelectMealsBottomSheetOpen}
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <PlusCircle size={72} weight="fill" color={colours.accentButton} />
+      </TouchableOpacity>
     );
   };
 
@@ -1126,7 +1371,7 @@ const Screen = () => {
                 <Text_TextBold
                   style={[
                     item.date.toDateString() ===
-                      currentDayRoutine.date.toDateString() && {
+                      currentDayRoutine!.date.toDateString() && {
                       color: colours.light,
                     },
                   ]}
@@ -1150,16 +1395,8 @@ const Screen = () => {
             }}
           />
         </View>
+        <AddMealComponent />
       </View>
-      <TouchableOpacity
-        onPress={handleSelectMealsBottomSheetOpen}
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <PlusCircle size={72} weight="fill" color={colours.accentButton} />
-      </TouchableOpacity>
 
       <BottomSheet
         ref={selectMealsBottomSheetRef}
@@ -1172,7 +1409,6 @@ const Screen = () => {
       >
         <RenderSelectMealsBottomSheetContent />
       </BottomSheet>
-
       <BottomSheet
         ref={filterMealsBottomSheetRef}
         snapPoints={filterMealsSnapPoints}

@@ -157,6 +157,8 @@ export type Reviews = {
   mealId: Realm.BSON.ObjectId;
   mealRoutineId: Realm.BSON.ObjectId;
   taste: number;
+  creationDate: Date;
+  makeAgain: boolean;
 };
 
 export const ReviewsSchema = {
@@ -170,6 +172,8 @@ export const ReviewsSchema = {
     mealId: "objectId",
     mealRoutineId: "objectId",
     taste: "double",
+    creationDate: "date",
+    makeAgain: "bool",
   },
   primaryKey: "_id",
 };

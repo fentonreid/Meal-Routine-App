@@ -15,6 +15,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
     "@gorhom/bottom-sheet": "^4.6.3",
+    "@react-native-assets/slider": "^7.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-navigation/native": "^6.0.2",
     "@realm/react": "^0.7.0",
