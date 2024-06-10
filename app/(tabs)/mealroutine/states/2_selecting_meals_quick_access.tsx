@@ -222,7 +222,7 @@ const Screen = () => {
               borderWidth: 6,
             },
           ]}
-          onPress={() => handlePress(item)}
+          onPressIn={() => handlePress(item)}
           delayPressIn={0}
         >
           <Image
@@ -869,38 +869,41 @@ const Screen = () => {
           </Button_PrimaryThin>
         )}
       </View>
-      <BottomSheet
-        ref={finishBottomSheetRef}
-        snapPoints={finishSnapPoints}
-        enablePanDownToClose={true}
-        index={finished ? 0 : -1}
-        handleComponent={() => <></>}
-        backdropComponent={renderFinishBackdrop}
-        handleIndicatorStyle={{ backgroundColor: colours.background }}
-        backgroundStyle={{ backgroundColor: colours.background }}
-      >
-        <BottomSheetView
-          style={[
-            styles.bottomSheetContainer,
-            { backgroundColor: colours.background },
-          ]}
+      {finished && (
+        <BottomSheet
+          ref={finishBottomSheetRef}
+          snapPoints={finishSnapPoints}
+          enablePanDownToClose={true}
+          index={finished ? 0 : -1}
+          handleComponent={() => <></>}
+          backdropComponent={renderFinishBackdrop}
+          handleIndicatorStyle={{ backgroundColor: colours.background }}
+          backgroundStyle={{ backgroundColor: colours.background }}
         >
-          <Button_Wide
-            onPress={() => {
-              realm.write(() => {
-                activeMealRoutine!.mealRoutineState = MealRoutineState.SHOPPING;
-              });
-
-              router.replace("mealroutine/states/3_shopping");
-            }}
+          <BottomSheetView
+            style={[
+              styles.bottomSheetContainer,
+              { backgroundColor: colours.background },
+            ]}
           >
-            Confirm Routine
-          </Button_Wide>
-          <Button_BackgroundThin onPress={handleFinishBottomSheetClose}>
-            Make Amendments
-          </Button_BackgroundThin>
-        </BottomSheetView>
-      </BottomSheet>
+            <Button_Wide
+              onPress={() => {
+                realm.write(() => {
+                  activeMealRoutine!.mealRoutineState =
+                    MealRoutineState.SHOPPING;
+                });
+
+                router.replace("mealroutine/states/3_shopping");
+              }}
+            >
+              Confirm Routine
+            </Button_Wide>
+            <Button_BackgroundThin onPress={handleFinishBottomSheetClose}>
+              Make Amendments
+            </Button_BackgroundThin>
+          </BottomSheetView>
+        </BottomSheet>
+      )}
     </View>
   );
 };

@@ -12,6 +12,9 @@ import { SettingsContext } from "@/store/SettingsContext";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -59,6 +62,9 @@ import {
 } from "@/components/ButtonStyles";
 import { SearchBar } from "react-native-screens";
 import { ThemeColours } from "@/models/ThemeColours";
+import { Results } from "realm";
+import { RealmObject } from "realm/dist/public-types/Object";
+import React from "react";
 
 const selectMealsSnapPoints = ["100%"];
 const filterMealsSnapPoints = ["100%"];
@@ -104,6 +110,7 @@ const RenderRating = ({
       // Full star
       stars.push(
         <Star
+          key={i}
           style={{ flex: 1 }}
           size={24}
           weight="fill"
@@ -114,6 +121,7 @@ const RenderRating = ({
       // Half star
       stars.push(
         <StarHalf
+          key={i}
           style={{ flex: 1 }}
           size={24}
           weight="fill"
@@ -124,6 +132,7 @@ const RenderRating = ({
       // Empty star
       stars.push(
         <Star
+          key={i}
           style={{ flex: 1 }}
           size={24}
           weight="regular"
@@ -166,7 +175,7 @@ const Screen = () => {
   const [currentDayRoutine, setCurrentDayRoutine] =
     useState<MealRoutine_DailyMeals | null>(null);
   const [selectMealsToggle, setSelectMealsToggle] = useState<boolean>(true);
-  const [filterMealsToggle, setFilterMealsToggle] = useState<boolean>(true);
+  const [filterMealsToggle, setFilterMealsToggle] = useState<boolean>(false);
   const filterMealsBottomSheetRef = useRef<BottomSheet>(null);
   const selectMealsBottomSheetRef = useRef<BottomSheet>(null);
   const meals = useQuery<Meals>("Meals");
@@ -180,15 +189,31 @@ const Screen = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [sortFilters, setSortFilters] = useState<SortFilter[]>([]);
   const [filterFilters, setFilterFilters] = useState<FilterFilter[]>([]);
+  const [tasteCount, setTasteCount] = useState(0);
+  const [effortCount, setEffortCount] = useState(0);
 
   const user = useQuery<Users>("Users")[0];
   const reviews = useQuery<Reviews>("Reviews").sorted([["creationDate", true]]);
+  let uniqueReviews: Reviews[] = [];
+
+  useEffect(() => {
+    const uniqueReviewsMap = new Map();
+
+    reviews.forEach((review) => {
+      const mealId = review.mealId.toString();
+      if (!uniqueReviewsMap.has(mealId)) {
+        uniqueReviewsMap.set(mealId, review);
+      }
+    });
+
+    uniqueReviews = Array.from(uniqueReviewsMap.values());
+  }, [reviews]);
 
   const activeMealRoutine = MealRoutineStateManager({
     ignoreCurrentMealRoutineState: [MealRoutineState.SELECTING_MEALS],
   });
 
-  const headerRight = () => {
+  const headerRight = useCallback(() => {
     return (
       <TouchableOpacity
         onPress={() =>
@@ -202,7 +227,7 @@ const Screen = () => {
         />
       </TouchableOpacity>
     );
-  };
+  }, [colours, router]);
 
   // Determine what day of the meal routine we are rendering here, this will inform the flatlist and header components
   const { dayIndex } = useLocalSearchParams();
@@ -245,36 +270,39 @@ const Screen = () => {
     setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
   }, []);
 
-  const CustomHeaderLeftForFilter = () => {
+  const CustomHeaderLeftForFilter = useCallback(() => {
     return (
       <TouchableOpacity
         style={{ paddingTop: 8 }}
-        onPress={handleFilterMealsBottomSheetClose}
+        onPress={useCallback(() => {
+          resetFilters();
+          handleSelectMealsBottomSheetOpen();
+          handleFilterMealsBottomSheetClose();
+        }, [])}
       >
         <Text_TextBold style={{ color: colours.accentButton }}>
           Cancel
         </Text_TextBold>
       </TouchableOpacity>
     );
-  };
+  }, [colours, filterMealsToggle]);
 
-  const CustomHeaderRightForFilter = () => {
+  const resetFilters = useCallback(() => {
+    setSortFilters([]);
+    setFilterFilters([]);
+    setTasteRange([0, 5]);
+    setEffortRange([0, 5]);
+  }, []);
+
+  const CustomHeaderRightForFilter = useCallback(() => {
     return (
-      <TouchableOpacity
-        style={{ paddingTop: 8 }}
-        onPress={() => {
-          setSortFilters([]);
-          setFilterFilters([]);
-          setTasteRange([0, 5]);
-          setEffortRange([0, 5]);
-        }}
-      >
+      <TouchableOpacity style={{ paddingTop: 8 }} onPress={resetFilters}>
         <Text_Text>Reset</Text_Text>
       </TouchableOpacity>
     );
-  };
+  }, []);
 
-  const groupMealsByType = (meals: DailyMeal_Meals[]) => {
+  const groupMealsByType = useCallback((meals: DailyMeal_Meals[]) => {
     const groupedMeals: { [key: string]: DailyMeal_Meals[] } = meals.reduce(
       (acc: { [key: string]: DailyMeal_Meals[] }, meal) => {
         const { mealType } = meal;
@@ -291,103 +319,83 @@ const Screen = () => {
       title: mealType,
       data: groupedMeals[mealType] || [],
     }));
-  };
+  }, []);
 
-  const handleSelectMealsBottomSheetClose = () => {
+  const handleSelectMealsBottomSheetClose = useCallback(() => {
     setSelectMealsToggle(false);
     setSelectedMeals([]);
     selectMealsBottomSheetRef?.current?.close();
-  };
+  }, [selectMealsBottomSheetRef]);
 
-  const handleSelectMealsBottomSheetOpen = () => {
+  const handleSelectMealsBottomSheetOpen = useCallback(() => {
     setSelectMealsToggle(true);
     selectMealsBottomSheetRef?.current?.expand();
-  };
+  }, [selectMealsBottomSheetRef]);
 
-  const handleFilterMealsBottomSheetClose = () => {
+  const handleFilterMealsBottomSheetClose = useCallback(() => {
     setFilterMealsToggle(false);
     filterMealsBottomSheetRef?.current?.close();
-  };
+  }, [filterMealsBottomSheetRef]);
 
-  const handleFilterMealsBottomSheetOpen = () => {
+  const handleFilterMealsBottomSheetOpen = useCallback(() => {
     setFilterMealsToggle(true);
     filterMealsBottomSheetRef?.current?.expand();
-  };
+  }, [filterMealsBottomSheetRef]);
 
-  const renderSectionHeader = ({
-    section: { title, data },
-  }: {
-    section: {
-      title: string;
-      data: DailyMeal_Meals[];
-    };
-  }) => {
-    const numberOfCompleteMeals = data.filter(
-      (i) => i.mealState === MealState.PENDING_REVIEW
-    );
+  const renderSectionHeader = useCallback(
+    ({
+      section: { title, data },
+    }: {
+      section: {
+        title: string;
+        data: DailyMeal_Meals[];
+      };
+    }) => {
+      const numberOfCompleteMeals = data.filter(
+        (meal) => meal.mealState === MealState.PENDING_REVIEW
+      );
 
-    return (
-      <View
-        style={{
-          flex: 1,
-          borderTopLeftRadius: 8,
-          borderTopRightRadius: 8,
-          backgroundColor: colours.light,
-          paddingHorizontal: 12,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 4,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+      return (
+        <View style={styles.sectionHeaderContainer}>
+          <View style={styles.sectionHeaderInnerContainer}>
             <Text_CardHeader>{title}</Text_CardHeader>
             {numberOfCompleteMeals && numberOfCompleteMeals.length >= 1 && (
-              <CheckCircle size={28} weight="fill" color={colours.primary} />
+              <CheckCircle size={24} weight="fill" color={colours.primary} />
             )}
           </View>
+          <View style={styles.sectionHeaderDivider} />
         </View>
-        <View
-          style={{
-            height: 2,
-            backgroundColor: colours.secondary,
-            marginTop: 6,
-          }}
-        ></View>
-      </View>
-    );
-  };
+      );
+    },
+    [colours]
+  );
 
-  const getHeartRatingOfMeal = (item: Meals) => {
-    const rating = reviews.find(
-      (review) => review.mealId.toString() === item._id.toString()
-    );
-    return rating ? rating.makeAgain : false;
-  };
+  const getHeartRatingOfMeal = useCallback(
+    (item: Meals) => {
+      const rating = uniqueReviews.find(
+        (review) => review.mealId.toString() === item._id.toString()
+      );
+      return rating ? rating.makeAgain : false;
+    },
+    [uniqueReviews]
+  );
 
-  const getTasteRatingOfMeal = (item: Meals) => {
-    const rating = reviews.find(
-      (review) => review.mealId.toString() === item._id.toString()
-    );
-    return rating ? rating.taste : null;
-  };
+  const getRatingOfMealByKey = useCallback(
+    (
+      item: Meals,
+      key: keyof {
+        effort: string;
+        taste: string;
+      }
+    ) => {
+      const rating = uniqueReviews.find(
+        (review) => review.mealId.toString() === item._id.toString()
+      );
 
-  const getEffortRatingOfMeal = (item: Meals) => {
-    const rating = reviews.find(
-      (review) => review.mealId.toString() === item._id.toString()
-    );
-    return rating ? rating.effort : null;
-  };
+      return rating ? rating[key] : null;
+    },
+    [uniqueReviews]
+  );
 
   const RenderSingleMealItem = ({
     item,
@@ -397,9 +405,11 @@ const Screen = () => {
     mealsOfSameType: DailyMeal_Meals[];
   }) => {
     const heartFilled = item.mealId ? getHeartRatingOfMeal(item.mealId) : false;
-    const tasteRating = item.mealId ? getTasteRatingOfMeal(item.mealId) : null;
+    const tasteRating = item.mealId
+      ? getRatingOfMealByKey(item.mealId, "taste")
+      : null;
     const effortRating = item.mealId
-      ? getEffortRatingOfMeal(item.mealId)
+      ? getRatingOfMealByKey(item.mealId, "effort")
       : null;
 
     return (
@@ -411,15 +421,7 @@ const Screen = () => {
         }}
       >
         <View
-          style={{
-            flex: 1,
-            marginVertical: 6,
-            flexDirection: "row",
-            backgroundColor: colours.background,
-            borderRadius: 8,
-            padding: 8,
-            gap: 16,
-          }}
+          style={[styles.mealCategoryFlatlistContainer, { marginVertical: 6 }]}
         >
           <View style={{ flex: 3 }}>
             <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
@@ -434,14 +436,7 @@ const Screen = () => {
               />
             </View>
 
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 4,
-                alignItems: "center",
-                marginLeft: 6,
-              }}
-            >
+            <View style={styles.ratingContainer}>
               <Text_TabIconText>Taste:</Text_TabIconText>
               {tasteRating !== null ? (
                 <RenderRating rating={tasteRating} colours={colours} />
@@ -452,14 +447,7 @@ const Screen = () => {
               )}
             </View>
 
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 4,
-                alignItems: "center",
-                marginLeft: 6,
-              }}
-            >
+            <View style={styles.ratingContainer}>
               <Text_TabIconText>Effort: </Text_TabIconText>
               {effortRating !== null ? (
                 <RenderRating rating={effortRating} colours={colours} />
@@ -483,218 +471,195 @@ const Screen = () => {
     );
   };
 
-  const removeMealSelection = (
-    item: DailyMeal_Meals,
-    mealsOfSameType: DailyMeal_Meals[]
-  ) => {
-    realm.write(() => {
-      const occurrences = mealsOfSameType.filter(
-        (meal) => meal.mealType === item.mealType
-      ).length;
+  const removeMealSelection = useCallback(
+    (item: DailyMeal_Meals, mealsOfSameType: DailyMeal_Meals[]) => {
+      realm.write(() => {
+        const occurrences = mealsOfSameType.filter(
+          (meal) => meal.mealType === item.mealType
+        ).length;
 
-      // If only one occurrence for this type was found then we can't remove from daily meals, just change state
-      if (occurrences === 1) {
-        item.mealId = undefined;
-        item.mealState = MealState.PENDING_MEAL_SELECTION;
-        return;
-      }
-
-      // Completely remove
-      realm.delete(item);
-    });
-  };
-
-  const renderDayRoutine = ({
-    item,
-    index,
-    section,
-  }: {
-    item: DailyMeal_Meals;
-    index: number;
-    section: {
-      title: string;
-      data: DailyMeal_Meals[];
-    };
-  }) => {
-    // If all meals in this section e.g. mealType are in pending_meal_selection mode then we ignore
-    const noCompletedMealsForThisMealType = section.data.filter(
-      (i) => i.mealState === MealState.PENDING_MEAL_SELECTION
-    );
-
-    return (
-      <View
-        style={[
-          {
-            backgroundColor: colours.light,
-            paddingHorizontal: 12,
-          },
-          index === section.data.length - 1 && {
-            borderBottomLeftRadius: 8,
-            borderBottomRightRadius: 8,
-          },
-        ]}
-      >
-        {noCompletedMealsForThisMealType &&
-        noCompletedMealsForThisMealType.length !== section.data.length ? (
-          <RenderSingleMealItem item={item} mealsOfSameType={section.data} />
-        ) : (
-          <Text_Text style={{ marginTop: 6, textAlign: "center" }}>
-            Nothing to show
-          </Text_Text>
-        )}
-      </View>
-    );
-  };
-
-  const filterMealByCategoryIndex = (index: number) => {
-    // Modify the existing stuff
-    let newMeals: Meals[] = [];
-    for (var meal of filteredMeals) {
-      if (meal.categories.includes(mapping2[index])) newMeals.push(meal);
-    }
-
-    return newMeals;
-  };
-
-  // Whenever filteredMeals changes trigger an update to the meal list
-  useEffect(() => {
-    setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
-  }, [filteredMeals]);
-
-  const handleMealCategoryChange = (index: number) => {
-    // Modify the existing stuff
-    setFilteredMealsByType(filterMealByCategoryIndex(index));
-
-    // Clear search text input
-    setSearchText("");
-
-    // Set new active index
-    setActiveIndex(index);
-
-    // Reset scroll between category switching
-    flatListScrollRef.current?.scrollToOffset({ offset: 0 });
-  };
-
-  const RenderMealCategoryScrollView = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingHorizontal: 12,
-        alignItems: "center",
-        gap: 2,
-      }}
-    >
-      <TouchableOpacity
-        key={0}
-        onPress={() => handleMealCategoryChange(0)}
-        delayPressIn={0}
-        style={
-          activeIndex === 0
-            ? [
-                styles.segmentButtonActive,
-                {
-                  backgroundColor: colours.darkPrimary,
-                  borderTopLeftRadius: 8,
-                  borderBottomLeftRadius: 8,
-                },
-              ]
-            : [
-                styles.segmentButton,
-                {
-                  backgroundColor: colours.secondary,
-                  borderTopLeftRadius: 8,
-                  borderBottomLeftRadius: 8,
-                },
-              ]
+        // If only one occurrence for this type was found then we can't remove from daily meals, just change state
+        if (occurrences === 1) {
+          item.mealId = undefined;
+          item.mealState = MealState.PENDING_MEAL_SELECTION;
+          return;
         }
-      >
-        {activeIndex === 0 ? (
-          <Text_TextBold style={{ color: colours.buttonText }}>
-            Breakfast
-          </Text_TextBold>
-        ) : (
-          <Text_Text>Breakfast</Text_Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        key={1}
-        onPress={() => handleMealCategoryChange(1)}
-        delayPressIn={0}
-        style={
-          activeIndex === 1
-            ? [
-                styles.segmentButtonActive,
-                { backgroundColor: colours.darkPrimary },
-              ]
-            : [styles.segmentButton, { backgroundColor: colours.secondary }]
-        }
-      >
-        {activeIndex === 1 ? (
-          <Text_TextBold style={{ color: colours.buttonText }}>
-            Lunch
-          </Text_TextBold>
-        ) : (
-          <Text_Text>Lunch</Text_Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        key={2}
-        onPress={() => handleMealCategoryChange(2)}
-        delayPressIn={0}
-        style={
-          activeIndex === 2
-            ? [
-                styles.segmentButtonActive,
-                { backgroundColor: colours.darkPrimary },
-              ]
-            : [styles.segmentButton, { backgroundColor: colours.secondary }]
-        }
-      >
-        {activeIndex === 2 ? (
-          <Text_TextBold style={{ color: colours.buttonText }}>
-            Dinner
-          </Text_TextBold>
-        ) : (
-          <Text_Text>Dinner</Text_Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        key={3}
-        onPress={() => handleMealCategoryChange(3)}
-        delayPressIn={0}
-        style={
-          activeIndex === 3
-            ? [
-                styles.segmentButtonActive,
-                {
-                  backgroundColor: colours.darkPrimary,
-                  borderTopRightRadius: 8,
-                  borderBottomRightRadius: 8,
-                },
-              ]
-            : [
-                styles.segmentButton,
-                {
-                  backgroundColor: colours.secondary,
-                  borderTopRightRadius: 8,
-                  borderBottomRightRadius: 8,
-                },
-              ]
-        }
-      >
-        {activeIndex === 3 ? (
-          <Text_TextBold style={{ color: colours.buttonText }}>
-            Snacks
-          </Text_TextBold>
-        ) : (
-          <Text_Text>Snacks</Text_Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+
+        // Completely remove
+        realm.delete(item);
+      });
+    },
+    [realm]
   );
 
-  const handleMealPress = (dailyMeal: DailyMeal) => {
+  const renderDayRoutine = useCallback(
+    ({
+      item,
+      index,
+      section,
+    }: {
+      item: DailyMeal_Meals;
+      index: number;
+      section: {
+        title: string;
+        data: DailyMeal_Meals[];
+      };
+    }) => {
+      // If all meals in this section e.g. mealType are in pending_meal_selection mode then we ignore
+      const noCompletedMealsForThisMealType = section.data.filter(
+        (i) => i.mealState === MealState.PENDING_MEAL_SELECTION
+      );
+
+      return (
+        <View
+          style={[
+            {
+              backgroundColor: colours.light,
+              paddingHorizontal: 12,
+            },
+            index === section.data.length - 1 && {
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+            },
+          ]}
+        >
+          {noCompletedMealsForThisMealType &&
+          noCompletedMealsForThisMealType.length !== section.data.length ? (
+            <RenderSingleMealItem item={item} mealsOfSameType={section.data} />
+          ) : (
+            <Text_Text style={{ marginTop: 6, textAlign: "center" }}>
+              Nothing to show
+            </Text_Text>
+          )}
+        </View>
+      );
+    },
+    [colours]
+  );
+
+  const filterMealByCategoryIndex = useCallback(
+    (index: number) => {
+      return filteredMeals.filter((meal: { categories: string[] }) =>
+        meal.categories.includes(mapping2[index])
+      );
+    },
+    [filteredMeals]
+  );
+
+  const filteredMealsResult = useMemo(
+    () => filterMealByCategoryIndex(activeIndex),
+    [filteredMeals, activeIndex, filterMealByCategoryIndex]
+  );
+
+  useEffect(() => {
+    setFilteredMealsByType(filteredMealsResult);
+  }, [filteredMealsResult]);
+
+  const handleMealCategoryChange = useCallback(
+    (index: number) => {
+      setFilteredMealsByType(filterMealByCategoryIndex(index));
+      setSearchText("");
+      setActiveIndex(index);
+
+      // Reset scroll between category switching
+      flatListScrollRef.current?.scrollToOffset({ offset: 0 });
+    },
+    [flatListScrollRef]
+  );
+
+  const RenderMealCategoryScrollView = useCallback(
+    () => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.mealCategoryContainer}
+      >
+        <TouchableOpacity
+          key={0}
+          onPress={() => handleMealCategoryChange(0)}
+          delayPressIn={0}
+          style={[
+            {
+              borderTopLeftRadius: 8,
+              borderBottomLeftRadius: 8,
+            },
+            activeIndex === 0
+              ? styles.segmentButtonActive
+              : styles.segmentButton,
+          ]}
+        >
+          {activeIndex === 0 ? (
+            <Text_TextBold style={{ color: colours.buttonText }}>
+              Breakfast
+            </Text_TextBold>
+          ) : (
+            <Text_Text>Breakfast</Text_Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          key={1}
+          onPress={() => handleMealCategoryChange(1)}
+          delayPressIn={0}
+          style={[
+            activeIndex === 1
+              ? styles.segmentButtonActive
+              : styles.segmentButton,
+          ]}
+        >
+          {activeIndex === 1 ? (
+            <Text_TextBold style={{ color: colours.buttonText }}>
+              Lunch
+            </Text_TextBold>
+          ) : (
+            <Text_Text>Lunch</Text_Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          key={2}
+          onPress={() => handleMealCategoryChange(2)}
+          delayPressIn={0}
+          style={[
+            activeIndex === 2
+              ? styles.segmentButtonActive
+              : styles.segmentButton,
+          ]}
+        >
+          {activeIndex === 2 ? (
+            <Text_TextBold style={{ color: colours.buttonText }}>
+              Dinner
+            </Text_TextBold>
+          ) : (
+            <Text_Text>Dinner</Text_Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          key={3}
+          onPress={() => handleMealCategoryChange(3)}
+          delayPressIn={0}
+          style={[
+            {
+              borderTopRightRadius: 8,
+              borderBottomRightRadius: 8,
+            },
+            activeIndex === 3
+              ? styles.segmentButtonActive
+              : styles.segmentButton,
+          ]}
+        >
+          {activeIndex === 3 ? (
+            <Text_TextBold style={{ color: colours.buttonText }}>
+              Snacks
+            </Text_TextBold>
+          ) : (
+            <Text_Text>Snacks</Text_Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    ),
+    [colours, activeIndex]
+  );
+
+  const handleMealPress = useCallback((dailyMeal: DailyMeal) => {
     setSelectedMeals((prevSelectedMeals) => {
       const isSelected = prevSelectedMeals.find(
         (meal) =>
@@ -712,120 +677,102 @@ const Screen = () => {
           )
         : [...prevSelectedMeals, dailyMeal];
     });
-  };
+  }, []);
 
-  const RenderSingleMealFlatList = ({ item }: { item: Meals }) => {
-    const heartFilled = getHeartRatingOfMeal(item);
-    const tasteRating = getTasteRatingOfMeal(item);
-    const effortRating = getEffortRatingOfMeal(item);
+  const RenderSingleMealFlatList = useCallback(
+    ({ item }: { item: Meals }) => {
+      const heartFilled = getHeartRatingOfMeal(item);
+      const tasteRating = getRatingOfMealByKey(item, "taste");
+      const effortRating = getRatingOfMealByKey(item, "effort");
 
-    const isSelected = selectedMeals.some(
-      (i) =>
-        i.meal._id.toString() === item._id.toString() &&
-        i.mealType === mapping[activeIndex]
-    );
+      const isSelected = selectedMeals.some(
+        (i) =>
+          i.meal._id.toString() === item._id.toString() &&
+          i.mealType === mapping[activeIndex]
+      );
 
-    return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => {
-          handleMealPress({ meal: item, mealType: mapping[activeIndex] });
-        }}
-        style={[
-          {
-            flex: 1,
-            flexDirection: "row",
-            backgroundColor: colours.background,
-            borderRadius: 8,
-            padding: 8,
-            gap: 16,
-          },
-          isSelected && {
-            borderWidth: 6,
-            borderColor: colours.darkPrimary,
-          },
-        ]}
-      >
-        <View style={{ flex: 3 }}>
-          <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
-            <Text_ListText style={{ flex: 3 }}>{item.name}</Text_ListText>
-            <Heart
-              style={{ flex: 1 }}
-              size={24}
-              weight={heartFilled ? "fill" : "regular"}
-              color={heartFilled ? colours.accentButton : colours.text}
-            />
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 4,
-              alignItems: "center",
-              marginLeft: 6,
-            }}
-          >
-            <Text_TabIconText>Taste:</Text_TabIconText>
-            {tasteRating !== null ? (
-              <RenderRating rating={tasteRating} colours={colours} />
-            ) : (
-              <Text_TabIconText style={{ color: colours.accent }}>
-                No rating
-              </Text_TabIconText>
-            )}
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 4,
-              alignItems: "center",
-              marginLeft: 6,
-            }}
-          >
-            <Text_TabIconText>Effort: </Text_TabIconText>
-            {effortRating !== null ? (
-              <RenderRating rating={effortRating} colours={colours} />
-            ) : (
-              <Text_TabIconText style={{ color: colours.accent }}>
-                No rating
-              </Text_TabIconText>
-            )}
-          </View>
-        </View>
-
-        <Image
-          style={{
-            flex: 1,
+      return (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            handleMealPress({ meal: item, mealType: mapping[activeIndex] });
           }}
-          resizeMode="contain"
-          source={{ uri: item.imageURI }}
-        />
-      </TouchableOpacity>
-    );
-  };
+          style={[
+            styles.mealCategoryFlatlistContainer,
+            isSelected && styles.mealCategoryItemSelected,
+          ]}
+        >
+          <View style={{ flex: 3 }}>
+            <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
+              <Text_ListText style={{ flex: 3 }}>{item.name}</Text_ListText>
+              <Heart
+                style={{ flex: 1 }}
+                size={24}
+                weight={heartFilled ? "fill" : "regular"}
+                color={heartFilled ? colours.accentButton : colours.text}
+              />
+            </View>
 
-  const onSearchTextChange = (inputText: string) => {
-    setSearchText(inputText);
+            <View style={styles.ratingContainer}>
+              <Text_TabIconText>Taste:</Text_TabIconText>
+              {tasteRating !== null ? (
+                <RenderRating rating={tasteRating} colours={colours} />
+              ) : (
+                <Text_TabIconText style={{ color: colours.accent }}>
+                  No rating
+                </Text_TabIconText>
+              )}
+            </View>
 
-    if (inputText === "") {
-      setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
-      return;
-    }
+            <View style={styles.ratingContainer}>
+              <Text_TabIconText>Effort: </Text_TabIconText>
+              {effortRating !== null ? (
+                <RenderRating rating={effortRating} colours={colours} />
+              ) : (
+                <Text_TabIconText style={{ color: colours.accent }}>
+                  No rating
+                </Text_TabIconText>
+              )}
+            </View>
+          </View>
 
-    const filteredList = filterMealByCategoryIndex(activeIndex).filter((meal) =>
-      meal.name?.toLowerCase().includes(inputText.toLowerCase())
-    );
+          <Image
+            style={{
+              flex: 1,
+            }}
+            resizeMode="contain"
+            source={{ uri: item.imageURI }}
+          />
+        </TouchableOpacity>
+      );
+    },
+    [colours, selectedMeals, activeIndex]
+  );
 
-    // Filter meals by type based on name
-    setFilteredMealsByType(filteredList);
-  };
+  const onSearchTextChange = useCallback(
+    (inputText: string) => {
+      setSearchText(inputText);
 
-  const addMeals = () => {
+      if (inputText === "") {
+        setFilteredMealsByType(filteredMealsResult);
+        return;
+      }
+
+      const filteredList = filteredMealsResult.filter(
+        (meal: { name: string }) =>
+          meal.name!.toLowerCase().includes(inputText.toLowerCase())
+      );
+
+      // Filter meals by type based on name
+      setFilteredMealsByType(filteredList);
+    },
+    [activeIndex, filteredMealsResult]
+  );
+
+  const addMeals = useCallback(() => {
     realm.write(() => {
-      // For each selected meal
-      for (var selectedMeal of selectedMeals) {
-        let foundMeal = currentDayRoutine!.meals.find(
+      selectedMeals.forEach((selectedMeal) => {
+        const foundMeal = currentDayRoutine!.meals.find(
           (meal) =>
             meal.mealState === MealState.PENDING_MEAL_SELECTION &&
             meal.mealType === selectedMeal.mealType
@@ -834,22 +781,25 @@ const Screen = () => {
         if (foundMeal) {
           foundMeal.mealState = MealState.PENDING_REVIEW;
           foundMeal.mealId = selectedMeal.meal;
-          continue;
+        } else {
+          currentDayRoutine?.meals.push({
+            mealId: selectedMeal.meal,
+            mealState: MealState.PENDING_REVIEW,
+            mealType: selectedMeal.mealType,
+          });
         }
-
-        // If not then create a new mealState
-        currentDayRoutine?.meals.push({
-          mealId: selectedMeal.meal,
-          mealState: MealState.PENDING_REVIEW,
-          mealType: selectedMeal.mealType,
-        });
-      }
+      });
     });
 
     handleSelectMealsBottomSheetClose();
-  };
+  }, [
+    realm,
+    selectedMeals,
+    currentDayRoutine,
+    handleSelectMealsBottomSheetClose,
+  ]);
 
-  const RenderSelectMealsBottomSheetContent = () => {
+  const RenderSelectMealsBottomSheetContent = useCallback(() => {
     return (
       <BottomSheetView
         style={{
@@ -863,25 +813,8 @@ const Screen = () => {
             <RenderMealCategoryScrollView />
           </View>
 
-          <View
-            style={{
-              flexDirection: "row",
-              paddingHorizontal: 12,
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                padding: 2,
-                borderRadius: 12,
-                backgroundColor: colours.secondary,
-                flex: 1,
-              }}
-            >
+          <View style={styles.searchBarContainer}>
+            <View style={styles.searchbar}>
               <MagnifyingGlass
                 style={{ marginLeft: 6 }}
                 size={18}
@@ -896,7 +829,10 @@ const Screen = () => {
             </View>
             <View style={{ flexDirection: "row" }}>
               <TouchableOpacity
-                onPress={handleFilterMealsBottomSheetOpen}
+                onPress={useCallback(() => {
+                  handleFilterMealsBottomSheetOpen();
+                  handleSelectMealsBottomSheetClose();
+                }, [])}
                 style={{ marginLeft: 6 }}
               >
                 <Sliders
@@ -907,13 +843,10 @@ const Screen = () => {
               </TouchableOpacity>
               {(sortFilters.length > 0 || filterFilters.length > 0) && (
                 <TouchableOpacity
-                  onPress={() => {
-                    setSortFilters([]);
-                    setFilterFilters([]);
-                    setTasteRange([0, 5]);
-                    setEffortRange([0, 5]);
+                  onPress={useCallback(() => {
+                    resetFilters();
                     setFilteredMeals(meals);
-                  }}
+                  }, [meals])}
                   style={{ marginLeft: 6 }}
                 >
                   <XCircle size={32} color={colours.accent} />
@@ -922,16 +855,7 @@ const Screen = () => {
             </View>
           </View>
 
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: colours.secondary,
-              marginBottom: 12,
-              marginHorizontal: 12,
-              borderRadius: 6,
-              paddingBottom: 6,
-            }}
-          >
+          <View style={styles.quickAccessFlatListContainer}>
             <FlatList
               ListHeaderComponent={<SearchBar />}
               ref={flatListScrollRef}
@@ -945,18 +869,7 @@ const Screen = () => {
               keyExtractor={(item) => item._id.toString()}
             />
           </View>
-          <View
-            style={{
-              borderTopWidth: 0.5,
-              borderColor: "lightgray",
-              flex: 1 / 10,
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 12,
-              paddingHorizontal: 12,
-            }}
-          >
+          <View style={styles.quickAccessBottomButtonContainer}>
             <Button_BackgroundThin
               style={{
                 flex: 1,
@@ -967,11 +880,7 @@ const Screen = () => {
             </Button_BackgroundThin>
             {selectMealsToggle && selectedMeals.length > 0 && (
               <Button_PrimaryThin
-                style={{
-                  flex: 2,
-                  borderWidth: 1,
-                  borderColor: colours.darkPrimary,
-                }}
+                style={styles.quickAccessConfirmButton}
                 onPress={addMeals}
               >
                 {selectMealsToggle && selectedMeals.length > 1
@@ -983,36 +892,53 @@ const Screen = () => {
         </View>
       </BottomSheetView>
     );
-  };
+  }, [
+    colours,
+    searchText,
+    selectedMeals,
+    selectMealsToggle,
+    meals,
+    filteredMealsByType,
+  ]);
 
-  const updateSortFilter = (isChecked: boolean, sortFilter: SortFilter) => {
-    // If checked then check if it already has been added
-    if (isChecked) {
-      setSortFilters((prevFilters) => [...prevFilters, sortFilter]);
-      return;
-    }
+  const updateSortFilter = useCallback(
+    (isChecked: boolean, sortFilter: SortFilter) => {
+      setSortFilters((prevFilters) => {
+        const filterExists = prevFilters.includes(sortFilter);
 
-    setSortFilters((prevFilters) =>
-      prevFilters.filter((filter) => filter !== sortFilter)
-    );
-  };
+        if (isChecked && !filterExists) {
+          // Add the sortFilter if it's checked and not already in the list
+          return [...prevFilters, sortFilter];
+        } else if (!isChecked && filterExists) {
+          // Remove the sortFilter if it's unchecked and currently in the list
+          return prevFilters.filter((filter) => filter !== sortFilter);
+        }
 
-  const updateFilterFilters = (
-    isChecked: boolean,
-    filterFilter: FilterFilter
-  ) => {
-    // If checked then check if it already has been added
-    if (isChecked) {
-      setFilterFilters((prevFilters) => [...prevFilters, filterFilter]);
-      return;
-    }
+        // Return previous filters if no changes are necessary
+        return prevFilters;
+      });
+    },
+    []
+  );
 
-    setFilterFilters((prevFilters) =>
-      prevFilters.filter((filter) => filter !== filterFilter)
-    );
-  };
+  const updateFilterFilters = useCallback(
+    (isChecked: boolean, filterFilter: FilterFilter) => {
+      setFilterFilters((prevFilters) => {
+        const filterExists = prevFilters.includes(filterFilter);
 
-  const handleFiltering = () => {
+        if (isChecked && !filterExists) {
+          return [...prevFilters, filterFilter];
+        } else if (!isChecked && filterExists) {
+          return prevFilters.filter((filter) => filter !== filterFilter);
+        }
+
+        return prevFilters;
+      });
+    },
+    []
+  );
+
+  const handleFiltering = useCallback(() => {
     // Don't filter if no filtering was applied
     if (sortFilters.length === 0 && filterFilters.length === 0) return;
 
@@ -1025,128 +951,94 @@ const Screen = () => {
 
     setFilteredMeals(filteredResults);
     handleFilterMealsBottomSheetClose();
-  };
+  }, [sortFilters, filterFilters, meals]);
 
-  const getMealCountWithFilter = (filter: FilterFilter) => {
-    let filtered = null;
-    let uniqueMealIds = new Set();
-    let uniqueReviews = [];
-
-    switch (filter) {
-      case FilterFilter.ADDEDBYYOU:
-        filtered = meals.filter(
-          (meal) => meal.creatorId !== null && meal.creatorId === user._id
-        );
-
-        return filtered ? filtered.length : 0;
-
-      case FilterFilter.MADEBEFORE:
-        filtered = meals.filter(
-          (meal) => meal.creatorId !== null && meal.creatorId === user._id
-        );
-
-        return filtered ? filtered.length : 0;
-
-      case FilterFilter.TASTE:
-        filtered = reviews.filter(
-          (review) =>
-            review.taste >= tasteRange[0] && review.taste <= tasteRange[1]
-        );
-
-        uniqueMealIds = new Set();
-        uniqueReviews = [];
-
-        filtered.forEach((review) => {
-          if (!uniqueMealIds.has(review.mealId.toString())) {
-            uniqueMealIds.add(review.mealId.toString());
-            uniqueReviews.push(review);
-          }
-        });
-
-        return uniqueReviews.length;
-
-      case FilterFilter.EFFORT:
-        filtered = reviews.filter(
-          (review) =>
-            review.effort >= effortRange[0] && review.effort <= effortRange[1]
-        );
-
-        uniqueMealIds = new Set();
-        uniqueReviews = [];
-
-        filtered.forEach((review) => {
-          if (!uniqueMealIds.has(review.mealId.toString())) {
-            uniqueMealIds.add(review.mealId.toString());
-            uniqueReviews.push(review);
-          }
-        });
-
-        return uniqueReviews.length;
-
-      default:
-        return 0;
-    }
-  };
-  const [tasteCount, setTasteCount] = useState(
-    getMealCountWithFilter(FilterFilter.TASTE)
+  const filterReviewsByRange = useCallback(
+    (
+      range: [number, number],
+      key: keyof {
+        effort: string;
+        taste: string;
+      }
+    ) => {
+      return uniqueReviews.filter(
+        (review) => review[key] >= range[0] && review[key] <= range[1]
+      );
+    },
+    [uniqueReviews]
   );
-  const [effortCount, setEffortCount] = useState(
-    getMealCountWithFilter(FilterFilter.EFFORT)
+
+  const getMealCountWithFilter = useCallback(
+    (filter: FilterFilter) => {
+      let filteredMeals = [];
+      let filteredReviews = [];
+
+      switch (filter) {
+        case FilterFilter.ADDEDBYYOU:
+          filteredMeals = meals.filter(
+            (meal) => meal.creatorId?.toString() === user._id.toString()
+          );
+          return filteredMeals ? filteredMeals.length : 0;
+
+        case FilterFilter.MADEBEFORE:
+          // If it has a review then add it?
+          filteredMeals = reviews.filter((review) => review.makeAgain === true);
+          return filteredMeals ? filteredMeals.length : 0;
+
+        case FilterFilter.TASTE:
+          filteredReviews = filterReviewsByRange(tasteRange, "taste");
+          return filteredReviews.length;
+
+        case FilterFilter.EFFORT:
+          filteredReviews = filterReviewsByRange(effortRange, "effort");
+          return filteredReviews.length;
+
+        default:
+          return 0;
+      }
+    },
+    [meals, tasteRange, effortRange, user._id]
   );
 
   useEffect(() => {
     setTasteCount(getMealCountWithFilter(FilterFilter.TASTE));
-  }, [tasteRange]);
+  }, [tasteRange, getMealCountWithFilter]);
 
   useEffect(() => {
     setEffortCount(getMealCountWithFilter(FilterFilter.EFFORT));
-  }, [effortCount]);
+  }, [effortRange, getMealCountWithFilter]);
 
-  const RenderFilterMealsBottomSheetContent = () => {
+  const handleSortFilterPress = useCallback(
+    (isChecked: boolean, sortFilter: SortFilter) => {
+      updateSortFilter(isChecked, sortFilter);
+    },
+    []
+  );
+
+  const handleFilterFilterPress = useCallback(
+    (isChecked: boolean, filterFilter: FilterFilter) => {
+      updateFilterFilters(isChecked, filterFilter);
+    },
+    []
+  );
+
+  const RenderFilterMealsBottomSheetContent = useCallback(() => {
     return (
       <View style={{ flex: 1, justifyContent: "space-between" }}>
-        <ScrollView
-          contentContainerStyle={{
-            backgroundColor: colours.background,
-          }}
-        >
-          <View
-            style={{
-              gap: 24,
-            }}
-          >
-            <View
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                margin: 12,
-                backgroundColor: colours.light,
-                borderRadius: 12,
-                elevation: 0.2,
-              }}
-            >
+        <ScrollView contentContainerStyle={styles.bottomSheetBackground}>
+          <View style={{ gap: 24 }}>
+            <View style={styles.filterCard}>
               <Text_MainHeading style={{ paddingBottom: 12 }}>
                 Sort
               </Text_MainHeading>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>Taste (High-Low)</Text_Text>
-                <View>
-                  <BouncyCheckbox
-                    isChecked={sortFilters.includes(SortFilter.TASTE)}
-                    onPress={(isChecked: boolean) => {
-                      updateSortFilter(isChecked, SortFilter.TASTE);
-                    }}
-                  />
-                </View>
-              </View>
-
+              <Checkbox
+                label="Taste (High-Low)"
+                isChecked={sortFilters.includes(SortFilter.TASTE)}
+                isFilter={false}
+                onPress={(isChecked) =>
+                  handleSortFilterPress(isChecked, SortFilter.TASTE)
+                }
+              />
               <View
                 style={{
                   marginVertical: 8,
@@ -1154,61 +1046,29 @@ const Screen = () => {
                   backgroundColor: colours.secondary,
                 }}
               />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>Effort (High-Low)</Text_Text>
-                <View>
-                  <BouncyCheckbox
-                    isChecked={sortFilters.includes(SortFilter.EFFORT)}
-                    onPress={(isChecked: boolean) => {
-                      updateSortFilter(isChecked, SortFilter.EFFORT);
-                    }}
-                  />
-                </View>
-              </View>
+              <Checkbox
+                label="Effort (High-Low)"
+                isChecked={sortFilters.includes(SortFilter.EFFORT)}
+                isFilter={false}
+                onPress={(isChecked) =>
+                  handleSortFilterPress(isChecked, SortFilter.EFFORT)
+                }
+              />
             </View>
 
-            <View
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                margin: 12,
-                backgroundColor: colours.light,
-                borderRadius: 12,
-                elevation: 0.2,
-              }}
-            >
+            <View style={styles.filterCard}>
               <Text_MainHeading style={{ paddingBottom: 12 }}>
                 Filter
               </Text_MainHeading>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>
-                  Added by you (
-                  {getMealCountWithFilter(FilterFilter.ADDEDBYYOU)})
-                </Text_Text>
-                <View>
-                  <BouncyCheckbox
-                    isChecked={filterFilters.includes(FilterFilter.ADDEDBYYOU)}
-                    onPress={(isChecked: boolean) => {
-                      updateFilterFilters(isChecked, FilterFilter.ADDEDBYYOU);
-                    }}
-                  />
-                </View>
-              </View>
-
+              <Checkbox
+                label="Added by you"
+                count={getMealCountWithFilter(FilterFilter.ADDEDBYYOU)}
+                isChecked={filterFilters.includes(FilterFilter.ADDEDBYYOU)}
+                isFilter
+                onPress={(isChecked) =>
+                  handleFilterFilterPress(isChecked, FilterFilter.ADDEDBYYOU)
+                }
+              />
               <View
                 style={{
                   marginVertical: 8,
@@ -1216,23 +1076,23 @@ const Screen = () => {
                   backgroundColor: colours.secondary,
                 }}
               />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>
-                  Made before ({getMealCountWithFilter(FilterFilter.MADEBEFORE)}
-                  )
-                </Text_Text>
-                <View>
-                  <BouncyCheckbox onPress={(isChecked: boolean) => {}} />
-                </View>
-              </View>
-
+              <Checkbox
+                label="Would make again"
+                count={getMealCountWithFilter(FilterFilter.MADEBEFORE)}
+                isChecked={filterFilters.includes(FilterFilter.MADEBEFORE)}
+                isFilter
+                onPress={(isChecked) =>
+                  handleFilterFilterPress(isChecked, FilterFilter.MADEBEFORE)
+                }
+              />
+              <View style={styles.divider} />
+              <FilterRangeSlider
+                label="Taste"
+                count={tasteCount}
+                range={tasteRange}
+                onValueChange={setTasteRange}
+                colours={colours}
+              />
               <View
                 style={{
                   marginVertical: 8,
@@ -1240,90 +1100,40 @@ const Screen = () => {
                   backgroundColor: colours.secondary,
                 }}
               />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>Taste ({tasteCount})</Text_Text>
-                <View style={{ flex: 2 / 3, paddingRight: 12 }}>
-                  <RangeSlider
-                    range={tasteRange}
-                    minimumValue={0}
-                    maximumValue={5}
-                    step={0.5}
-                    minimumRange={0}
-                    crossingAllowed={false}
-                    outboundColor={colours.secondary}
-                    inboundColor={colours.lightPrimary}
-                    thumbTintColor={colours.darkPrimary}
-                    trackHeight={8}
-                    thumbSize={18}
-                    slideOnTap={true}
-                    onValueChange={setTasteRange}
-                  />
-                </View>
-              </View>
-
-              <View
-                style={{
-                  marginVertical: 8,
-                  height: 2,
-                  backgroundColor: colours.secondary,
-                }}
+              <FilterRangeSlider
+                label="Effort"
+                count={effortCount}
+                range={effortRange}
+                onValueChange={setEffortRange}
+                colours={colours}
               />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text_Text>Effort ({effortCount})</Text_Text>
-                <View style={{ flex: 2 / 3, paddingRight: 12 }}>
-                  <RangeSlider
-                    range={effortRange}
-                    minimumValue={0}
-                    maximumValue={5}
-                    step={0.5}
-                    minimumRange={0}
-                    crossingAllowed={false}
-                    outboundColor={colours.secondary}
-                    inboundColor={colours.lightPrimary}
-                    thumbTintColor={colours.darkPrimary}
-                    trackHeight={8}
-                    thumbSize={18}
-                    slideOnTap={true}
-                    onValueChange={setEffortRange}
-                  />
-                </View>
-              </View>
             </View>
           </View>
         </ScrollView>
-
-        <View
-          style={{
-            borderTopWidth: 0.5,
-            borderColor: "lightgray",
-          }}
-        >
-          <Button_PrimaryThin
-            onPress={() => handleFiltering()}
-            style={{ margin: 12 }}
-          >
+        <View style={{ borderTopWidth: 0.5, borderColor: "lightgray" }}>
+          <Button_PrimaryThin onPress={handleFiltering} style={{ margin: 12 }}>
             Show Results
           </Button_PrimaryThin>
         </View>
       </View>
     );
-  };
+  }, [
+    colours,
+    sortFilters,
+    filterFilters,
+    tasteCount,
+    effortCount,
+    effortRange,
+    tasteRange,
+    updateSortFilter,
+    updateFilterFilters,
+    getMealCountWithFilter,
+    handleFiltering,
+    setTasteRange,
+    setEffortRange,
+  ]);
 
-  const AddMealComponent = () => {
+  const AddMealComponent = useCallback(() => {
     return (
       <TouchableOpacity
         onPress={handleSelectMealsBottomSheetOpen}
@@ -1335,105 +1145,308 @@ const Screen = () => {
         <PlusCircle size={72} weight="fill" color={colours.accentButton} />
       </TouchableOpacity>
     );
-  };
+  }, []);
+
+  const Checkbox = React.memo(
+    ({
+      label,
+      count,
+      isChecked,
+      isFilter,
+      onPress,
+    }: {
+      label: string;
+      count?: number;
+      isChecked: boolean;
+      isFilter: boolean;
+      onPress: (isChecked: boolean) => void;
+    }) => (
+      <View style={styles.checkbox}>
+        {isFilter ? (
+          <Text_Text>
+            {label} ({count})
+          </Text_Text>
+        ) : (
+          <Text_Text>{label}</Text_Text>
+        )}
+        <View>
+          <BouncyCheckbox
+            isChecked={isChecked}
+            onPress={onPress}
+            fillColor={colours.primaryButton}
+          />
+        </View>
+      </View>
+    )
+  );
+
+  const FilterRangeSlider = React.memo(
+    ({
+      label,
+      count,
+      range,
+      onValueChange,
+      colours,
+    }: {
+      label: string;
+      count: number;
+      range: [number, number];
+      onValueChange: Dispatch<SetStateAction<[number, number]>>;
+      colours: ThemeColours;
+    }) => (
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Text_Text>{`${label} (${count})`}</Text_Text>
+        <View style={{ flex: 2 / 3, paddingRight: 12 }}>
+          <RangeSlider
+            range={range}
+            minimumValue={0}
+            maximumValue={5}
+            step={0.5}
+            minimumRange={0}
+            crossingAllowed={false}
+            outboundColor={colours.secondary}
+            inboundColor={colours.lightPrimary}
+            thumbTintColor={colours.darkPrimary}
+            trackHeight={8}
+            thumbSize={18}
+            slideOnTap={true}
+            onValueChange={onValueChange}
+          />
+        </View>
+      </View>
+    )
+  );
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        segmentButtonActive: {
+          paddingHorizontal: 14,
+          paddingVertical: 4,
+          backgroundColor: colours.darkPrimary,
+        },
+
+        segmentButton: {
+          paddingHorizontal: 14,
+          paddingVertical: 4,
+          backgroundColor: colours.secondary,
+        },
+
+        divider: {
+          marginVertical: 8,
+          height: 2,
+          backgroundColor: colours.secondary,
+        },
+
+        mealCategoryScrollView: {
+          paddingHorizontal: 12,
+          gap: 4,
+          marginBottom: 12,
+        },
+
+        checkbox: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginRight: -16,
+        },
+
+        filterCard: {
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          margin: 12,
+          backgroundColor: colours.light,
+          borderRadius: 12,
+          elevation: 0.2,
+        },
+
+        searchbar: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          padding: 2,
+          borderRadius: 12,
+          backgroundColor: colours.secondary,
+          flex: 1,
+        },
+
+        quickAccessBottomButtonContainer: {
+          borderTopWidth: 0.5,
+          borderColor: "lightgray",
+          flex: 1 / 10,
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 12,
+          paddingHorizontal: 12,
+          paddingVertical: 2,
+        },
+
+        quickAccessConfirmButton: {
+          flex: 2,
+          borderWidth: 1,
+          borderColor: colours.darkPrimary,
+        },
+
+        quickAccessFlatListContainer: {
+          flex: 1,
+          backgroundColor: colours.secondary,
+          marginHorizontal: 12,
+          borderRadius: 6,
+          paddingBottom: 6,
+        },
+
+        searchBarContainer: {
+          flexDirection: "row",
+          paddingHorizontal: 12,
+          justifyContent: "space-between",
+          alignItems: "center",
+        },
+
+        mealCategoryFlatlistContainer: {
+          flex: 1,
+          flexDirection: "row",
+          backgroundColor: colours.background,
+          borderRadius: 8,
+          padding: 8,
+          gap: 16,
+        },
+
+        mealCategoryItemSelected: {
+          borderWidth: 6,
+          borderColor: colours.darkPrimary,
+        },
+
+        mealCategoryContainer: {
+          paddingHorizontal: 12,
+          alignItems: "center",
+          gap: 2,
+        },
+
+        ratingContainer: {
+          flexDirection: "row",
+          gap: 4,
+          alignItems: "center",
+          marginLeft: 6,
+        },
+
+        sectionHeaderContainer: {
+          flex: 1,
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+          backgroundColor: colours.light,
+          paddingHorizontal: 12,
+        },
+
+        sectionHeaderInnerContainer: {
+          flexDirection: "row",
+          gap: 4,
+          alignItems: "center",
+        },
+
+        sectionHeaderDivider: {
+          height: 2,
+          backgroundColor: colours.secondary,
+          marginTop: 2,
+        },
+
+        bottomSheetBackground: { backgroundColor: colours.background },
+      }),
+    [colours]
+  );
 
   if (!currentDayRoutine) return <Loading />;
 
   return (
     <View style={{ flex: 1, justifyContent: "space-between" }}>
-      <View style={{ flex: 1, gap: 24 }}>
-        <View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 12,
-              gap: 4,
-              marginTop: 12,
-            }}
-          >
-            {activeMealRoutine!.dailyMeals.map((item) => (
-              <TouchableOpacity
-                key={item.date.toDateString()}
-                onPress={() => {
-                  setCurrentDayRoutine(item);
-                }}
-                style={{
-                  paddingHorizontal: 6,
-                  backgroundColor:
-                    item.date.toDateString() !==
-                    currentDayRoutine!.date.toDateString()
-                      ? "lightgray"
-                      : colours.darkPrimary,
-                  borderRadius: 60,
-                }}
-              >
-                <Text_TextBold
-                  style={[
-                    item.date.toDateString() ===
-                      currentDayRoutine!.date.toDateString() && {
-                      color: colours.light,
-                    },
-                  ]}
+      {!selectMealsToggle && !filterMealsToggle && (
+        <View style={{ flex: 1, gap: 0 }}>
+          <View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.mealCategoryScrollView}
+            >
+              {activeMealRoutine!.dailyMeals.map((item) => (
+                <TouchableOpacity
+                  key={item.date.toDateString()}
+                  onPress={() => {
+                    setCurrentDayRoutine(item);
+                  }}
+                  style={{
+                    paddingHorizontal: 6,
+                    backgroundColor:
+                      item.date.toDateString() !==
+                      currentDayRoutine!.date.toDateString()
+                        ? "lightgray"
+                        : colours.darkPrimary,
+                    borderRadius: 60,
+                  }}
                 >
-                  {moment(item.date).format("Do")}
-                </Text_TextBold>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <Text_TextBold
+                    style={[
+                      item.date.toDateString() ===
+                        currentDayRoutine!.date.toDateString() && {
+                        color: colours.light,
+                      },
+                    ]}
+                  >
+                    {moment(item.date).format("Do")}
+                  </Text_TextBold>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          <View style={{ flex: 1 }}>
+            <SectionList
+              showsVerticalScrollIndicator={false}
+              sections={groupMealsByType(currentDayRoutine!.meals)}
+              renderItem={renderDayRoutine}
+              renderSectionHeader={renderSectionHeader}
+              extraData={currentDayRoutine!.meals}
+              renderSectionFooter={RenderSectionFooter}
+              contentContainerStyle={{
+                paddingHorizontal: 12,
+              }}
+            />
+          </View>
+          <AddMealComponent />
         </View>
-        <View style={{ flex: 1 }}>
-          <SectionList
-            showsVerticalScrollIndicator={false}
-            sections={groupMealsByType(currentDayRoutine!.meals)}
-            renderItem={renderDayRoutine}
-            renderSectionHeader={renderSectionHeader}
-            extraData={currentDayRoutine!.meals}
-            renderSectionFooter={RenderSectionFooter}
-            contentContainerStyle={{
-              paddingHorizontal: 12,
-            }}
-          />
-        </View>
-        <AddMealComponent />
-      </View>
+      )}
 
-      <BottomSheet
-        ref={selectMealsBottomSheetRef}
-        snapPoints={selectMealsSnapPoints}
-        index={selectMealsToggle ? 0 : -1}
-        enableContentPanningGesture={false}
-        handleComponent={() => <></>}
-        handleIndicatorStyle={{ backgroundColor: colours.background }}
-        backgroundStyle={{ backgroundColor: colours.background }}
-      >
-        <RenderSelectMealsBottomSheetContent />
-      </BottomSheet>
-      <BottomSheet
-        ref={filterMealsBottomSheetRef}
-        snapPoints={filterMealsSnapPoints}
-        index={filterMealsToggle ? 0 : -1}
-        enableContentPanningGesture={false}
-        handleComponent={() => <></>}
-        handleIndicatorStyle={{ backgroundColor: colours.background }}
-        backgroundStyle={{ backgroundColor: colours.background }}
-      >
-        <RenderFilterMealsBottomSheetContent />
-      </BottomSheet>
+      {selectMealsToggle && !filterMealsToggle && (
+        <BottomSheet
+          ref={selectMealsBottomSheetRef}
+          snapPoints={selectMealsSnapPoints}
+          enableContentPanningGesture={false}
+          handleComponent={null}
+          handleIndicatorStyle={styles.bottomSheetBackground}
+          backgroundStyle={styles.bottomSheetBackground}
+        >
+          <RenderSelectMealsBottomSheetContent />
+        </BottomSheet>
+      )}
+
+      {filterMealsToggle && !selectMealsToggle && (
+        <BottomSheet
+          ref={filterMealsBottomSheetRef}
+          snapPoints={filterMealsSnapPoints}
+          enableContentPanningGesture={false}
+          handleComponent={null}
+          handleIndicatorStyle={styles.bottomSheetBackground}
+          backgroundStyle={styles.bottomSheetBackground}
+        >
+          <RenderFilterMealsBottomSheetContent />
+        </BottomSheet>
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  segmentButtonActive: {
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-  },
-
-  segmentButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-  },
-});
 
 export default Screen;
