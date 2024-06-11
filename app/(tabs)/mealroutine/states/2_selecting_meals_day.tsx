@@ -62,8 +62,6 @@ import {
 } from "@/components/ButtonStyles";
 import { SearchBar } from "react-native-screens";
 import { ThemeColours } from "@/models/ThemeColours";
-import { Results } from "realm";
-import { RealmObject } from "realm/dist/public-types/Object";
 import React from "react";
 
 const selectMealsSnapPoints = ["100%"];
@@ -92,7 +90,7 @@ enum SortFilter {
 
 enum FilterFilter {
   ADDEDBYYOU,
-  MADEBEFORE,
+  MAKEAGAIN,
   TASTE,
   EFFORT,
 }
@@ -179,7 +177,9 @@ const Screen = () => {
   const filterMealsBottomSheetRef = useRef<BottomSheet>(null);
   const selectMealsBottomSheetRef = useRef<BottomSheet>(null);
   const meals = useQuery<Meals>("Meals");
-  const [filteredMeals, setFilteredMeals] = useState<any>(meals);
+  const [filteredMeals, setFilteredMeals] = useState<Meals[]>(
+    Array.from(meals) as Meals[]
+  );
   const [tasteRange, setTasteRange] = useState<[number, number]>([0, 5]);
   const [effortRange, setEffortRange] = useState<[number, number]>([0, 5]);
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
@@ -194,19 +194,13 @@ const Screen = () => {
 
   const user = useQuery<Users>("Users")[0];
   const reviews = useQuery<Reviews>("Reviews").sorted([["creationDate", true]]);
-  let uniqueReviews: Reviews[] = [];
-
-  useEffect(() => {
-    const uniqueReviewsMap = new Map();
-
+  const uniqueReviewsMap = useMemo(() => {
+    const temp = new Map();
     reviews.forEach((review) => {
-      const mealId = review.mealId.toString();
-      if (!uniqueReviewsMap.has(mealId)) {
-        uniqueReviewsMap.set(mealId, review);
-      }
+      temp.set(review.mealId.toString(), review);
     });
 
-    uniqueReviews = Array.from(uniqueReviewsMap.values());
+    return temp;
   }, [reviews]);
 
   const activeMealRoutine = MealRoutineStateManager({
@@ -303,6 +297,7 @@ const Screen = () => {
   }, []);
 
   const groupMealsByType = useCallback((meals: DailyMeal_Meals[]) => {
+    // Group meals by mealType
     const groupedMeals: { [key: string]: DailyMeal_Meals[] } = meals.reduce(
       (acc: { [key: string]: DailyMeal_Meals[] }, meal) => {
         const { mealType } = meal;
@@ -315,6 +310,15 @@ const Screen = () => {
       {}
     );
 
+    Object.keys(groupedMeals).forEach((mealType) => {
+      groupedMeals[mealType].sort((a, b) => {
+        const nameA = a.mealId?.name || "";
+        const nameB = b.mealId?.name || "";
+        return nameA.localeCompare(nameB);
+      });
+    });
+
+    // Return the sorted and grouped meals in the desired order
     return mealOrder.map((mealType) => ({
       title: mealType,
       data: groupedMeals[mealType] || [],
@@ -372,12 +376,10 @@ const Screen = () => {
 
   const getHeartRatingOfMeal = useCallback(
     (item: Meals) => {
-      const rating = uniqueReviews.find(
-        (review) => review.mealId.toString() === item._id.toString()
-      );
-      return rating ? rating.makeAgain : false;
+      const review = uniqueReviewsMap.get(item._id.toString());
+      return review ? review.makeAgain : false;
     },
-    [uniqueReviews]
+    [uniqueReviewsMap]
   );
 
   const getRatingOfMealByKey = useCallback(
@@ -388,13 +390,10 @@ const Screen = () => {
         taste: string;
       }
     ) => {
-      const rating = uniqueReviews.find(
-        (review) => review.mealId.toString() === item._id.toString()
-      );
-
-      return rating ? rating[key] : null;
+      const review = uniqueReviewsMap.get(item._id.toString());
+      return review ? review[key] : null;
     },
-    [uniqueReviews]
+    [uniqueReviewsMap]
   );
 
   const RenderSingleMealItem = ({
@@ -542,6 +541,7 @@ const Screen = () => {
       return filteredMeals.filter((meal: { categories: string[] }) =>
         meal.categories.includes(mapping2[index])
       );
+      // .sort((a: Meals, b: Meals) => a!.name!.localeCompare(b!.name!));
     },
     [filteredMeals]
   );
@@ -557,6 +557,8 @@ const Screen = () => {
 
   const handleMealCategoryChange = useCallback(
     (index: number) => {
+      if (index === activeIndex) return;
+
       setFilteredMealsByType(filterMealByCategoryIndex(index));
       setSearchText("");
       setActiveIndex(index);
@@ -564,7 +566,7 @@ const Screen = () => {
       // Reset scroll between category switching
       flatListScrollRef.current?.scrollToOffset({ offset: 0 });
     },
-    [flatListScrollRef]
+    [flatListScrollRef, activeIndex]
   );
 
   const RenderMealCategoryScrollView = useCallback(
@@ -659,25 +661,28 @@ const Screen = () => {
     [colours, activeIndex]
   );
 
-  const handleMealPress = useCallback((dailyMeal: DailyMeal) => {
-    setSelectedMeals((prevSelectedMeals) => {
-      const isSelected = prevSelectedMeals.find(
-        (meal) =>
-          meal.meal._id.toString() === dailyMeal.meal._id.toString() &&
-          meal.mealType === dailyMeal.mealType
-      );
+  const handleMealPress = useCallback(
+    (dailyMeal: DailyMeal) => {
+      setSelectedMeals((prevSelectedMeals) => {
+        const isSelected = prevSelectedMeals.find(
+          (meal) =>
+            meal.meal._id.toString() === dailyMeal.meal._id.toString() &&
+            meal.mealType === dailyMeal.mealType
+        );
 
-      return isSelected
-        ? prevSelectedMeals.filter(
-            (meal) =>
-              !(
-                meal.meal._id.toString() === dailyMeal.meal._id.toString() &&
-                meal.mealType === dailyMeal.mealType
-              )
-          )
-        : [...prevSelectedMeals, dailyMeal];
-    });
-  }, []);
+        return isSelected
+          ? prevSelectedMeals.filter(
+              (meal) =>
+                !(
+                  meal.meal._id.toString() === dailyMeal.meal._id.toString() &&
+                  meal.mealType === dailyMeal.mealType
+                )
+            )
+          : [...prevSelectedMeals, dailyMeal];
+      });
+    },
+    [uniqueReviewsMap, reviews, filteredMeals]
+  );
 
   const RenderSingleMealFlatList = useCallback(
     ({ item }: { item: Meals }) => {
@@ -758,9 +763,8 @@ const Screen = () => {
         return;
       }
 
-      const filteredList = filteredMealsResult.filter(
-        (meal: { name: string }) =>
-          meal.name!.toLowerCase().includes(inputText.toLowerCase())
+      const filteredList = filteredMealsResult.filter((meal) =>
+        meal.name!.toLowerCase().includes(inputText.toLowerCase())
       );
 
       // Filter meals by type based on name
@@ -841,11 +845,16 @@ const Screen = () => {
                   style={{ transform: [{ rotate: "90deg" }] }}
                 />
               </TouchableOpacity>
-              {(sortFilters.length > 0 || filterFilters.length > 0) && (
+              {(sortFilters.length > 0 ||
+                filterFilters.length > 0 ||
+                tasteRange[0] !== 0 ||
+                tasteRange[1] !== 5 ||
+                effortRange[0] !== 0 ||
+                effortRange[1] !== 5) && (
                 <TouchableOpacity
                   onPress={useCallback(() => {
                     resetFilters();
-                    setFilteredMeals(meals);
+                    setFilteredMeals(Array.from(meals) as Meals[]);
                   }, [meals])}
                   style={{ marginLeft: 6 }}
                 >
@@ -874,7 +883,10 @@ const Screen = () => {
               style={{
                 flex: 1,
               }}
-              onPress={handleSelectMealsBottomSheetClose}
+              onPress={() => {
+                setSearchText("");
+                handleSelectMealsBottomSheetClose();
+              }}
             >
               Cancel
             </Button_BackgroundThin>
@@ -938,20 +950,84 @@ const Screen = () => {
     []
   );
 
+  const sortFilteredResults = useCallback(
+    (
+      filteredMeals: Meals[],
+      sortingCriteria: (review: Reviews | undefined) => number
+    ): Meals[] => {
+      return (Array.from(filteredMeals) as Meals[]).sort(
+        (a: Meals, b: Meals) => {
+          const aReview = uniqueReviewsMap.get(a._id.toString());
+          const bReview = uniqueReviewsMap.get(b._id.toString());
+          const aValue = sortingCriteria(aReview);
+          const bValue = sortingCriteria(bReview);
+          return bValue - aValue;
+        }
+      );
+    },
+    []
+  );
+
   const handleFiltering = useCallback(() => {
     // Don't filter if no filtering was applied
-    if (sortFilters.length === 0 && filterFilters.length === 0) return;
+    if (
+      sortFilters.length === 0 &&
+      filterFilters.length === 0 &&
+      tasteRange[0] === 0 &&
+      tasteRange[1] === 5 &&
+      effortRange[0] === 0 &&
+      effortRange[1] === 5
+    ) {
+      handleSelectMealsBottomSheetOpen();
+      handleFilterMealsBottomSheetClose();
+      return;
+    }
 
-    // Define proper filtering
-    // Todo: Implement...
+    let filteredResults: Meals[] = [];
 
-    const filteredResults = meals.filter(
-      (item) => item.name === "Tortang Talong"
-    );
+    // Handle Filtering
+    if (filterFilters.includes(FilterFilter.ADDEDBYYOU))
+      filteredResults.push(...getMealsByFilter(FilterFilter.ADDEDBYYOU));
 
-    setFilteredMeals(filteredResults);
+    if (filterFilters.includes(FilterFilter.MAKEAGAIN))
+      filteredResults.push(...getMealsByFilter(FilterFilter.MAKEAGAIN));
+
+    if (filterFilters.includes(FilterFilter.TASTE))
+      filteredResults.push(...getMealsByFilter(FilterFilter.TASTE));
+
+    if (filterFilters.includes(FilterFilter.EFFORT))
+      filteredResults.push(...getMealsByFilter(FilterFilter.EFFORT));
+
+    let finalResults: Meals[] = [];
+    filteredResults.forEach((meal) => {
+      var found = false;
+      for (var finalMeal of finalResults) {
+        if (meal._id.toString() === finalMeal._id.toString()) {
+          found = true;
+          return;
+        }
+      }
+
+      if (!found) finalResults.push(meal);
+    });
+
+    // Handle sorting
+    if (sortFilters.includes(SortFilter.TASTE) && finalResults.length > 0)
+      finalResults = sortFilteredResults(
+        filteredResults,
+        (review: Reviews | undefined) => (review ? review.taste : 0)
+      );
+
+    if (sortFilters.includes(SortFilter.EFFORT) && finalResults.length > 0)
+      finalResults = sortFilteredResults(
+        filteredResults,
+        (review: Reviews | undefined) => (review ? review.effort : 0)
+      );
+
+    setFilteredMeals(finalResults);
+    handleSelectMealsBottomSheetOpen();
     handleFilterMealsBottomSheetClose();
-  }, [sortFilters, filterFilters, meals]);
+  }, [sortFilters, filterFilters, meals, reviews, uniqueReviewsMap]);
 
   const filterReviewsByRange = useCallback(
     (
@@ -961,52 +1037,53 @@ const Screen = () => {
         taste: string;
       }
     ) => {
-      return uniqueReviews.filter(
+      if (range[0] === 0 && range[1] === 5) return Array.from(meals);
+
+      return Array.from(uniqueReviewsMap.values()).filter(
         (review) => review[key] >= range[0] && review[key] <= range[1]
       );
     },
-    [uniqueReviews]
+    [uniqueReviewsMap]
   );
 
-  const getMealCountWithFilter = useCallback(
+  const getMealsByFilter = useCallback(
     (filter: FilterFilter) => {
-      let filteredMeals = [];
-      let filteredReviews = [];
+      let filtered = [];
 
       switch (filter) {
         case FilterFilter.ADDEDBYYOU:
-          filteredMeals = meals.filter(
+          filtered = meals.filter(
             (meal) => meal.creatorId?.toString() === user._id.toString()
           );
-          return filteredMeals ? filteredMeals.length : 0;
+          break;
 
-        case FilterFilter.MADEBEFORE:
-          // If it has a review then add it?
-          filteredMeals = reviews.filter((review) => review.makeAgain === true);
-          return filteredMeals ? filteredMeals.length : 0;
+        case FilterFilter.MAKEAGAIN:
+          filtered = meals.filter(
+            (meal) => uniqueReviewsMap.get(meal._id.toString())?.makeAgain
+          );
+          break;
 
         case FilterFilter.TASTE:
-          filteredReviews = filterReviewsByRange(tasteRange, "taste");
-          return filteredReviews.length;
+          filtered = filterReviewsByRange(tasteRange, "taste");
+          break;
 
         case FilterFilter.EFFORT:
-          filteredReviews = filterReviewsByRange(effortRange, "effort");
-          return filteredReviews.length;
-
-        default:
-          return 0;
+          filtered = filterReviewsByRange(effortRange, "effort");
+          break;
       }
+
+      return filtered ? Array.from(filtered as Meals[]) : [];
     },
-    [meals, tasteRange, effortRange, user._id]
+    [meals, tasteRange, effortRange, user._id, reviews, uniqueReviewsMap]
   );
 
   useEffect(() => {
-    setTasteCount(getMealCountWithFilter(FilterFilter.TASTE));
-  }, [tasteRange, getMealCountWithFilter]);
+    setTasteCount(getMealsByFilter(FilterFilter.TASTE).length);
+  }, [tasteRange]);
 
   useEffect(() => {
-    setEffortCount(getMealCountWithFilter(FilterFilter.EFFORT));
-  }, [effortRange, getMealCountWithFilter]);
+    setEffortCount(getMealsByFilter(FilterFilter.EFFORT).length);
+  }, [effortRange]);
 
   const handleSortFilterPress = useCallback(
     (isChecked: boolean, sortFilter: SortFilter) => {
@@ -1062,7 +1139,7 @@ const Screen = () => {
               </Text_MainHeading>
               <Checkbox
                 label="Added by you"
-                count={getMealCountWithFilter(FilterFilter.ADDEDBYYOU)}
+                count={getMealsByFilter(FilterFilter.ADDEDBYYOU).length}
                 isChecked={filterFilters.includes(FilterFilter.ADDEDBYYOU)}
                 isFilter
                 onPress={(isChecked) =>
@@ -1078,11 +1155,11 @@ const Screen = () => {
               />
               <Checkbox
                 label="Would make again"
-                count={getMealCountWithFilter(FilterFilter.MADEBEFORE)}
-                isChecked={filterFilters.includes(FilterFilter.MADEBEFORE)}
+                count={getMealsByFilter(FilterFilter.MAKEAGAIN).length}
+                isChecked={filterFilters.includes(FilterFilter.MAKEAGAIN)}
                 isFilter
                 onPress={(isChecked) =>
-                  handleFilterFilterPress(isChecked, FilterFilter.MADEBEFORE)
+                  handleFilterFilterPress(isChecked, FilterFilter.MAKEAGAIN)
                 }
               />
               <View style={styles.divider} />
@@ -1127,7 +1204,6 @@ const Screen = () => {
     tasteRange,
     updateSortFilter,
     updateFilterFilters,
-    getMealCountWithFilter,
     handleFiltering,
     setTasteRange,
     setEffortRange,
