@@ -55,17 +55,23 @@ import {
 } from "@/components/TextStyles";
 import { MealState } from "@/models/enums/MealState";
 import SwipeableRow from "@/components/SwipeableRow";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import {
   Button_BackgroundThin,
   Button_PrimaryThin,
+  Button_Wide,
 } from "@/components/ButtonStyles";
 import { SearchBar } from "react-native-screens";
 import { ThemeColours } from "@/models/ThemeColours";
 import React from "react";
+import { MealType } from "@/models/enums/MealType";
 
 const selectMealsSnapPoints = ["100%"];
 const filterMealsSnapPoints = ["100%"];
+const finishSnapPoints = ["35%"];
 
 // Determine if meal is disabled or enabled
 const mapping: Record<number, string> = {
@@ -172,21 +178,27 @@ const Screen = () => {
   const realm = useRealm();
   const [currentDayRoutine, setCurrentDayRoutine] =
     useState<MealRoutine_DailyMeals | null>(null);
-  const [selectMealsToggle, setSelectMealsToggle] = useState<boolean>(true);
+  const [selectMealsToggle, setSelectMealsToggle] = useState<boolean>(false);
   const [filterMealsToggle, setFilterMealsToggle] = useState<boolean>(false);
+  const [finished, setFinished] = useState(false);
   const filterMealsBottomSheetRef = useRef<BottomSheet>(null);
   const selectMealsBottomSheetRef = useRef<BottomSheet>(null);
+  const finishBottomSheetRef = useRef<BottomSheet>(null);
+
   const meals = useQuery<Meals>("Meals");
   const [filteredMeals, setFilteredMeals] = useState<Meals[]>(
     Array.from(meals) as Meals[]
   );
+
   const [tasteRange, setTasteRange] = useState<[number, number]>([0, 5]);
   const [effortRange, setEffortRange] = useState<[number, number]>([0, 5]);
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListScrollRef = useRef<FlatList>(null);
+
   const [selectedMeals, setSelectedMeals] = useState<DailyMeal[]>([]);
   const [searchText, setSearchText] = useState<string>("");
+
   const [sortFilters, setSortFilters] = useState<SortFilter[]>([]);
   const [filterFilters, setFilterFilters] = useState<FilterFilter[]>([]);
   const [tasteCount, setTasteCount] = useState(0);
@@ -236,6 +248,25 @@ const Screen = () => {
     setCurrentDayRoutine(activeMealRoutine!.dailyMeals[0]);
   }, [dayIndex]);
 
+  const renderFinishedHeaderButton = useCallback(
+    (onPress: () => void) => {
+      return (
+        <TouchableOpacity
+          onPress={onPress}
+          style={{
+            flexDirection: "row",
+            gap: 12,
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <CheckCircle size={42} weight="fill" color={colours.darkPrimary} />
+        </TouchableOpacity>
+      );
+    },
+    [colours, finished]
+  );
+
   // Define required header
   useLayoutEffect(() => {
     if (!filterMealsToggle) {
@@ -245,8 +276,10 @@ const Screen = () => {
               currentDayRoutine!.date
             ).format("Do")}`
           : "",
-        headerLeft: () => <></>,
-        headerRight: !selectMealsToggle ? headerRight : () => <></>,
+        headerLeft: !finished
+          ? null
+          : renderFinishedHeaderButton.bind(this, handleFinishBottomSheetOpen),
+        headerRight: !selectMealsToggle ? headerRight : null,
       });
       return;
     }
@@ -259,16 +292,42 @@ const Screen = () => {
     });
   }, [navigation, currentDayRoutine, selectMealsToggle, filterMealsToggle]);
 
+  // Create a useEffect that monitors the meal state and determines if the final modal should be shown
+  useLayoutEffect(() => {
+    let returnEarly = false;
+    // Loop through all meals for each day, exclude snacks from being required
+    for (var dailyMeal of activeMealRoutine!.dailyMeals) {
+      for (var meals of dailyMeal!.meals) {
+        // Skip if snack type
+        if (
+          MealType[meals.mealType as keyof typeof MealType] === MealType.SNACK
+        )
+          continue;
+
+        if (meals.mealState !== MealState.PENDING_REVIEW) returnEarly = true;
+      }
+    }
+
+    console.log("RETURN EARLY: ", returnEarly);
+    setFinished(!returnEarly);
+
+    // Not ready to render the bottom sheet just yet
+    if (returnEarly) return;
+  }, [activeMealRoutine!.dailyMeals]);
+
   // Initial population of the filtered quick access meals
   useEffect(() => {
     setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
   }, []);
+
+  console.log("FINISHED", finished);
 
   const CustomHeaderLeftForFilter = useCallback(() => {
     return (
       <TouchableOpacity
         style={{ paddingTop: 8 }}
         onPress={useCallback(() => {
+          setFilteredMeals(Array.from(meals));
           resetFilters();
           handleSelectMealsBottomSheetOpen();
           handleFilterMealsBottomSheetClose();
@@ -284,8 +343,8 @@ const Screen = () => {
   const resetFilters = useCallback(() => {
     setSortFilters([]);
     setFilterFilters([]);
-    setTasteRange([0, 5]);
-    setEffortRange([0, 5]);
+    setTasteRange([0, 0]);
+    setEffortRange([0, 0]);
   }, []);
 
   const CustomHeaderRightForFilter = useCallback(() => {
@@ -327,7 +386,7 @@ const Screen = () => {
 
   const handleSelectMealsBottomSheetClose = useCallback(() => {
     setSelectMealsToggle(false);
-    setSelectedMeals([]);
+    //setSelectedMeals([]);
     selectMealsBottomSheetRef?.current?.close();
   }, [selectMealsBottomSheetRef]);
 
@@ -345,6 +404,14 @@ const Screen = () => {
     setFilterMealsToggle(true);
     filterMealsBottomSheetRef?.current?.expand();
   }, [filterMealsBottomSheetRef]);
+
+  const handleFinishBottomSheetClose = useCallback(() => {
+    finishBottomSheetRef?.current?.close();
+  }, []);
+
+  const handleFinishBottomSheetOpen = useCallback(() => {
+    finishBottomSheetRef?.current?.expand();
+  }, []);
 
   const renderSectionHeader = useCallback(
     ({
@@ -795,6 +862,7 @@ const Screen = () => {
       });
     });
 
+    setSelectedMeals([]);
     handleSelectMealsBottomSheetClose();
   }, [
     realm,
@@ -845,12 +913,12 @@ const Screen = () => {
                   style={{ transform: [{ rotate: "90deg" }] }}
                 />
               </TouchableOpacity>
-              {(sortFilters.length > 0 ||
-                filterFilters.length > 0 ||
-                tasteRange[0] !== 0 ||
-                tasteRange[1] !== 5 ||
+              {(tasteRange[0] !== 0 ||
+                tasteRange[1] !== 0 ||
                 effortRange[0] !== 0 ||
-                effortRange[1] !== 5) && (
+                effortRange[1] !== 0 ||
+                sortFilters.length > 0 ||
+                filterFilters.length > 0) && (
                 <TouchableOpacity
                   onPress={useCallback(() => {
                     resetFilters();
@@ -885,6 +953,7 @@ const Screen = () => {
               }}
               onPress={() => {
                 setSearchText("");
+                setSelectedMeals([]);
                 handleSelectMealsBottomSheetClose();
               }}
             >
@@ -974,10 +1043,11 @@ const Screen = () => {
       sortFilters.length === 0 &&
       filterFilters.length === 0 &&
       tasteRange[0] === 0 &&
-      tasteRange[1] === 5 &&
+      tasteRange[1] === 0 &&
       effortRange[0] === 0 &&
-      effortRange[1] === 5
+      effortRange[1] === 0
     ) {
+      setFilteredMeals(Array.from(meals));
       handleSelectMealsBottomSheetOpen();
       handleFilterMealsBottomSheetClose();
       return;
@@ -1027,7 +1097,14 @@ const Screen = () => {
     setFilteredMeals(finalResults);
     handleSelectMealsBottomSheetOpen();
     handleFilterMealsBottomSheetClose();
-  }, [sortFilters, filterFilters, meals, reviews, uniqueReviewsMap]);
+  }, [
+    sortFilters,
+    filterFilters,
+    meals,
+    reviews,
+    uniqueReviewsMap,
+    selectedMeals,
+  ]);
 
   const filterReviewsByRange = useCallback(
     (
@@ -1037,13 +1114,13 @@ const Screen = () => {
         taste: string;
       }
     ) => {
-      if (range[0] === 0 && range[1] === 5) return Array.from(meals);
+      if (range[0] === 0 && range[1] === 0) return Array.from(meals);
 
       return Array.from(uniqueReviewsMap.values()).filter(
         (review) => review[key] >= range[0] && review[key] <= range[1]
       );
     },
-    [uniqueReviewsMap]
+    [uniqueReviewsMap, meals]
   );
 
   const getMealsByFilter = useCallback(
@@ -1209,6 +1286,32 @@ const Screen = () => {
     setEffortRange,
   ]);
 
+  const RenderFinishedBottomSheetContent = useCallback(() => {
+    return (
+      <BottomSheetView
+        style={[
+          styles.finishedBottomSheetContainer,
+          { backgroundColor: colours.background },
+        ]}
+      >
+        <Button_Wide
+          onPress={() => {
+            realm.write(() => {
+              activeMealRoutine!.mealRoutineState = MealRoutineState.SHOPPING;
+            });
+
+            router.replace("mealroutine/states/3_shopping");
+          }}
+        >
+          Confirm Routine
+        </Button_Wide>
+        <Button_BackgroundThin onPress={handleFinishBottomSheetClose}>
+          Make Amendments
+        </Button_BackgroundThin>
+      </BottomSheetView>
+    );
+  }, [colours, router, finished, realm]);
+
   const AddMealComponent = useCallback(() => {
     return (
       <TouchableOpacity
@@ -1297,6 +1400,18 @@ const Screen = () => {
         </View>
       </View>
     )
+  );
+
+  const renderFinishBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        style={{ backgroundColor: colours.background }}
+        {...props}
+      ></BottomSheetBackdrop>
+    ),
+    [colours]
   );
 
   const styles = useMemo(
@@ -1433,6 +1548,14 @@ const Screen = () => {
         },
 
         bottomSheetBackground: { backgroundColor: colours.background },
+
+        finishedBottomSheetContainer: {
+          paddingHorizontal: 48,
+          justifyContent: "space-evenly",
+          flex: 1,
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
+        },
       }),
     [colours]
   );
@@ -1519,6 +1642,21 @@ const Screen = () => {
           backgroundStyle={styles.bottomSheetBackground}
         >
           <RenderFilterMealsBottomSheetContent />
+        </BottomSheet>
+      )}
+
+      {finished && (
+        <BottomSheet
+          ref={finishBottomSheetRef}
+          snapPoints={finishSnapPoints}
+          index={finished ? 0 : -1}
+          enablePanDownToClose={true}
+          handleComponent={null}
+          backdropComponent={renderFinishBackdrop}
+          handleIndicatorStyle={{ backgroundColor: colours.background }}
+          backgroundStyle={{ backgroundColor: colours.background }}
+        >
+          <RenderFinishedBottomSheetContent />
         </BottomSheet>
       )}
     </View>
