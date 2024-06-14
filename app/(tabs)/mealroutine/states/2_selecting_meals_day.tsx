@@ -1569,6 +1569,61 @@ const Screen = () => {
     [colours]
   );
 
+  const isCurrentDayComplete = useCallback(
+    (dailyMeals: MealRoutine_DailyMeals) => {
+      let isComplete = true;
+      for (var meals of dailyMeals.meals) {
+        if (
+          MealType[meals.mealType as keyof typeof MealType] === MealType.SNACK
+        )
+          continue;
+
+        if (meals.mealState !== MealState.PENDING_REVIEW) isComplete = false;
+      }
+
+      return isComplete;
+    },
+    []
+  );
+
+  const RenderDayScrollViewContent = ({
+    item,
+  }: {
+    item: MealRoutine_DailyMeals;
+  }) => {
+    const dayComplete = isCurrentDayComplete(item);
+
+    return (
+      <TouchableOpacity
+        key={item.date.toDateString()}
+        onPress={() => {
+          setCurrentDayRoutine(item);
+        }}
+        style={{
+          paddingHorizontal: 6,
+          backgroundColor:
+            item.date.toDateString() !== currentDayRoutine!.date.toDateString()
+              ? "lightgray"
+              : !dayComplete
+              ? colours.accent
+              : colours.darkPrimary,
+          borderRadius: 60,
+        }}
+      >
+        <Text_TextBold
+          style={[
+            item.date.toDateString() ===
+              currentDayRoutine!.date.toDateString() && {
+              color: colours.light,
+            },
+          ]}
+        >
+          {moment(item.date).format("Do")}
+        </Text_TextBold>
+      </TouchableOpacity>
+    );
+  };
+
   if (!currentDayRoutine) return <Loading />;
 
   return (
@@ -1581,33 +1636,8 @@ const Screen = () => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.mealCategoryScrollView}
             >
-              {activeMealRoutine!.dailyMeals.map((item) => (
-                <TouchableOpacity
-                  key={item.date.toDateString()}
-                  onPress={() => {
-                    setCurrentDayRoutine(item);
-                  }}
-                  style={{
-                    paddingHorizontal: 6,
-                    backgroundColor:
-                      item.date.toDateString() !==
-                      currentDayRoutine!.date.toDateString()
-                        ? "lightgray"
-                        : colours.darkPrimary,
-                    borderRadius: 60,
-                  }}
-                >
-                  <Text_TextBold
-                    style={[
-                      item.date.toDateString() ===
-                        currentDayRoutine!.date.toDateString() && {
-                        color: colours.light,
-                      },
-                    ]}
-                  >
-                    {moment(item.date).format("Do")}
-                  </Text_TextBold>
-                </TouchableOpacity>
+              {activeMealRoutine!.dailyMeals.map((item, index) => (
+                <RenderDayScrollViewContent key={index} item={item} />
               ))}
             </ScrollView>
           </View>
