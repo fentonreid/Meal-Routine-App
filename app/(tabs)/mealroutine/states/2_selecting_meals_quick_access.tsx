@@ -64,7 +64,7 @@ const createRoutineCustomHeaderLeft = (
         alignItems: "center",
       }}
     >
-      <CheckCircle size={32} weight="fill" color={colours.accent} />
+      <CheckCircle size={38} weight="fill" color={colours.darkPrimary} />
     </TouchableOpacity>
   );
 };

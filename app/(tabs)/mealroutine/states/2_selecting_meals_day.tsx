@@ -190,8 +190,8 @@ const Screen = () => {
     Array.from(meals) as Meals[]
   );
 
-  const [tasteRange, setTasteRange] = useState<[number, number]>([0, 5]);
-  const [effortRange, setEffortRange] = useState<[number, number]>([0, 5]);
+  const [tasteRange, setTasteRange] = useState<[number, number]>([0, 0]);
+  const [effortRange, setEffortRange] = useState<[number, number]>([0, 0]);
   const [filteredMealsByType, setFilteredMealsByType] = useState<Meals[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListScrollRef = useRef<FlatList>(null);
@@ -207,7 +207,7 @@ const Screen = () => {
   const user = useQuery<Users>("Users")[0];
   const reviews = useQuery<Reviews>("Reviews").sorted([["creationDate", true]]);
   const uniqueReviewsMap = useMemo(() => {
-    const temp = new Map();
+    const temp = new Map<string, Reviews>();
     reviews.forEach((review) => {
       temp.set(review.mealId.toString(), review);
     });
@@ -290,7 +290,13 @@ const Screen = () => {
       headerLeft: () => <CustomHeaderLeftForFilter />,
       headerRight: () => <CustomHeaderRightForFilter />,
     });
-  }, [navigation, currentDayRoutine, selectMealsToggle, filterMealsToggle]);
+  }, [
+    navigation,
+    currentDayRoutine,
+    selectMealsToggle,
+    filterMealsToggle,
+    finished,
+  ]);
 
   // Create a useEffect that monitors the meal state and determines if the final modal should be shown
   useLayoutEffect(() => {
@@ -308,19 +314,13 @@ const Screen = () => {
       }
     }
 
-    console.log("RETURN EARLY: ", returnEarly);
     setFinished(!returnEarly);
-
-    // Not ready to render the bottom sheet just yet
-    if (returnEarly) return;
   }, [activeMealRoutine!.dailyMeals]);
 
   // Initial population of the filtered quick access meals
   useEffect(() => {
     setFilteredMealsByType(filterMealByCategoryIndex(activeIndex));
   }, []);
-
-  console.log("FINISHED", finished);
 
   const CustomHeaderLeftForFilter = useCallback(() => {
     return (
@@ -608,7 +608,6 @@ const Screen = () => {
       return filteredMeals.filter((meal: { categories: string[] }) =>
         meal.categories.includes(mapping2[index])
       );
-      // .sort((a: Meals, b: Meals) => a!.name!.localeCompare(b!.name!));
     },
     [filteredMeals]
   );
@@ -1024,15 +1023,13 @@ const Screen = () => {
       filteredMeals: Meals[],
       sortingCriteria: (review: Reviews | undefined) => number
     ): Meals[] => {
-      return (Array.from(filteredMeals) as Meals[]).sort(
-        (a: Meals, b: Meals) => {
-          const aReview = uniqueReviewsMap.get(a._id.toString());
-          const bReview = uniqueReviewsMap.get(b._id.toString());
-          const aValue = sortingCriteria(aReview);
-          const bValue = sortingCriteria(bReview);
-          return bValue - aValue;
-        }
-      );
+      return Array.from(filteredMeals).sort((a: Meals, b: Meals) => {
+        const aReview = uniqueReviewsMap.get(a._id.toString());
+        const bReview = uniqueReviewsMap.get(b._id.toString());
+        const aValue = sortingCriteria(aReview);
+        const bValue = sortingCriteria(bReview);
+        return bValue - aValue;
+      });
     },
     []
   );
@@ -1062,11 +1059,13 @@ const Screen = () => {
     if (filterFilters.includes(FilterFilter.MAKEAGAIN))
       filteredResults.push(...getMealsByFilter(FilterFilter.MAKEAGAIN));
 
-    if (filterFilters.includes(FilterFilter.TASTE))
+    if (!(tasteRange[0] === 0 && tasteRange[1] === 0)) {
       filteredResults.push(...getMealsByFilter(FilterFilter.TASTE));
+    }
 
-    if (filterFilters.includes(FilterFilter.EFFORT))
+    if (!(effortRange[0] === 0 && effortRange[1] === 0)) {
       filteredResults.push(...getMealsByFilter(FilterFilter.EFFORT));
+    }
 
     let finalResults: Meals[] = [];
     filteredResults.forEach((meal) => {
@@ -1104,6 +1103,8 @@ const Screen = () => {
     reviews,
     uniqueReviewsMap,
     selectedMeals,
+    tasteRange,
+    effortRange,
   ]);
 
   const filterReviewsByRange = useCallback(
@@ -1113,11 +1114,19 @@ const Screen = () => {
         effort: string;
         taste: string;
       }
-    ) => {
+    ): Meals[] => {
+      console.log("HERE");
       if (range[0] === 0 && range[1] === 0) return Array.from(meals);
 
-      return Array.from(uniqueReviewsMap.values()).filter(
-        (review) => review[key] >= range[0] && review[key] <= range[1]
+      const reviewMealIds = Array.from(uniqueReviewsMap.entries()) // Convert map entries to an array
+        .filter(
+          ([mealId, review]) =>
+            review[key] >= range[0] && review[key] <= range[1]
+        ) // Filter by review range
+        .map(([mealId, review]) => mealId); // Map the filtered entries to their keys (mealIds)
+
+      return meals.filter((meal) =>
+        reviewMealIds.includes(meal._id.toString())
       );
     },
     [uniqueReviewsMap, meals]
