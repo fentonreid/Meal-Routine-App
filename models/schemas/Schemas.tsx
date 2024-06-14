@@ -57,20 +57,20 @@ export const MealRoutine_DailyMealsSchema = {
 };
 
 export type MealRoutine_ShoppingList = {
-  ingredientId: Realm.BSON.ObjectId;
+  ingredientId: Ingredients;
   isAdded: boolean;
-  totalQuantity?: unknown;
-  unitId: Realm.BSON.ObjectId;
+  totalQuantity?: string | number;
+  unitId: Units;
 };
 
 export const MealRoutine_ShoppingListSchema = {
   name: "MealRoutine_ShoppingList",
   embedded: true,
   properties: {
-    ingredientId: "objectId",
+    ingredientId: "Ingredients",
     isAdded: "bool",
     totalQuantity: "mixed",
-    unitId: "objectId",
+    unitId: "Units",
   },
 };
 
