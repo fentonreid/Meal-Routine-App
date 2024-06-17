@@ -6,8 +6,13 @@ import {
 } from "@/components/TextStyles";
 import MealRoutineStateManager from "@/managers/MealRoutineStateManager";
 import { MealRoutineState } from "@/models/enums/MealRoutineState";
-import { MealRoutine_ShoppingList } from "@/models/schemas/Schemas";
-import { useRealm } from "@realm/react";
+import {
+  Ingredients,
+  MealRoutine_ShoppingList,
+  ShoppingCategories,
+  Units,
+} from "@/models/schemas/Schemas";
+import { useQuery, useRealm } from "@realm/react";
 import {
   View,
   Image,
@@ -36,29 +41,31 @@ import { router } from "expo-router";
 import BouncyCheckbox from "react-native-bouncy-checkbox/build/dist/BouncyCheckbox";
 import { PlusCircle } from "phosphor-react-native";
 
-const LoadingShoppingList = () => (
-  <View
-    style={{
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 24,
-    }}
-  >
-    <Image
-      source={require("@/assets/images/shopping/frogMixing.png")}
+const LoadingShoppingList = () => {
+  return (
+    <View
       style={{
-        resizeMode: "contain",
-        alignSelf: "center",
-        transform: [{ scaleX: -1 }],
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 24,
       }}
-    />
-    <View>
-      <Text_TextBold>Froggo is creating your shopping list...</Text_TextBold>
-      <ActivityIndicator size="large" />
+    >
+      <Image
+        source={require("@/assets/images/shopping/frogMixing.png")}
+        style={{
+          resizeMode: "contain",
+          alignSelf: "center",
+          transform: [{ scaleX: -1 }],
+        }}
+      />
+      <View>
+        <Text_TextBold>Froggo is creating your shopping list...</Text_TextBold>
+        <ActivityIndicator size="large" />
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 const finishSnapPoints = ["35%"];
 
@@ -67,18 +74,16 @@ const Screen = () => {
   const realm = useRealm();
   const [finished, setFinished] = useState(false);
   const finishBottomSheetRef = useRef<BottomSheet>(null);
-  const shoppingList = useState<
-    {
-      title: string;
-      data: MealRoutine_ShoppingList[];
-    }[]
-  >([]);
+  const ingredients = useQuery<Ingredients>("Ingredients");
+  const units = useQuery<Units>("Units");
+  const shoppingCategories = useQuery<ShoppingCategories>("ShoppingCategories");
 
   const activeMealRoutine = MealRoutineStateManager({
     ignoreCurrentMealRoutineState: [MealRoutineState.SHOPPING],
   });
 
   // Create a useEffect that monitors the meal state and determines if the final modal should be shown
+  // This useEffect will also determine if the shoppingList state needs updated
   useEffect(() => {
     if (
       !activeMealRoutine!.shoppingList ||
@@ -99,9 +104,9 @@ const Screen = () => {
     // DEBUG: Onion, count 1
     const initialShoppingList: MealRoutine_ShoppingList[] = [
       // {
-      //   ingredientId: activeMealRoutine!.dailyMeals[0].meals[0].mealId!.ingredients[0].,
+      //   ingredient: activeMealRoutine!.dailyMeals[0].meals[0].mealId!.ingredients[0]
       //   isAdded: true,
-      //   unitId: activeMealRoutine!.dailyMeals[0].meals[0].mealId?.ingredients[0].ingredient,
+      //   unit: activeMealRoutine!.dailyMeals[0].meals[0].mealId?.ingredients[0].ingredient,
       //   totalQuantity: 1,
       // },
     ];
@@ -138,15 +143,6 @@ const Screen = () => {
   const handleFinishBottomSheetOpen = useCallback(() => {
     finishBottomSheetRef?.current?.expand();
   }, []);
-
-  // If the shopping list has not been created then we display a loading screen and generate the shopping list
-  if (
-    !activeMealRoutine!.shoppingList ||
-    activeMealRoutine!.shoppingList.length === 0
-  ) {
-    createShoppingList();
-    return <LoadingShoppingList />;
-  }
 
   const styles = useMemo(
     () =>
@@ -308,25 +304,6 @@ const Screen = () => {
     [colours]
   );
 
-  const DATA = [
-    {
-      title: "Main dishes",
-      data: ["Pizza", "Burger", "Risotto"],
-    },
-    {
-      title: "Sides",
-      data: ["French Fries", "Onion Rings", "Fried Shrimps"],
-    },
-    {
-      title: "Drinks",
-      data: ["Water", "Coke", "Beer"],
-    },
-    {
-      title: "Desserts",
-      data: ["Cheese Cake", "Ice Cream"],
-    },
-  ];
-
   const RenderShoppingCategoryHeader = ({
     section: { title },
   }: {
@@ -388,7 +365,13 @@ const Screen = () => {
             },
           ]}
         >
-          <Text_ListText>{item.ingredientId!.name}</Text_ListText>
+          <Text_ListText>
+            {item.ingredient.name} ({item.totalQuantity}
+            {item.unit.unitDisplayName.length > 0
+              ? " " + item.unit.unitDisplayName
+              : ""}
+            )
+          </Text_ListText>
           <View style={{ marginRight: -16 }}>
             <BouncyCheckbox
               size={32}
@@ -443,25 +426,102 @@ const Screen = () => {
     );
   }, []);
 
+  const getShoppingList = (): {
+    title: string;
+    data: MealRoutine_ShoppingList[];
+  }[] => {
+    let shoppingList: {
+      title: string;
+      data: MealRoutine_ShoppingList[];
+    }[] = [];
+
+    // I need to go to the meal routine and foreach day get the ingredients
+    for (var dailyMeals of activeMealRoutine!.dailyMeals) {
+      for (var meal of dailyMeals.meals) {
+        if (meal.mealId === null) continue;
+
+        for (var ingredient of meal.mealId!.ingredients) {
+          // Ingredient
+          let foundIngredient = ingredients.find(
+            (item) => item._id.toString() === ingredient.ingredientId.toString()
+          )!;
+
+          // Unit
+          let foundUnit = units.find(
+            (item) =>
+              item._id.toString() ===
+              meal.mealId!.ingredients[0].unit.toString()
+          )!;
+
+          // Shopping category
+          let foundShoppingCategory = shoppingCategories.find(
+            (item) =>
+              item._id.toString() ===
+              foundIngredient.shoppingCategory.toString()
+          )!.shoppingCategory;
+
+          // Does the category exist? If not then add a new section
+          let foundCategory = shoppingList.find(
+            (category) => category.title === foundShoppingCategory
+          );
+
+          if (foundCategory) {
+            foundCategory.data.push({
+              ingredient: foundIngredient,
+              isAdded: false,
+              unit: foundUnit,
+              totalQuantity: ingredient.quantity as string,
+            });
+          } else {
+            shoppingList.push({
+              title: foundShoppingCategory,
+              data: [
+                {
+                  ingredient: foundIngredient!,
+                  isAdded: false,
+                  unit: foundUnit,
+                  totalQuantity: ingredient.quantity as string,
+                },
+              ],
+            });
+          }
+        }
+      }
+    }
+
+    return shoppingList;
+  };
+
+  // // Create shopping list if it is not defined
+  // useEffect(() => {
+  //   let shoppingList = getShoppingList();
+  //   // Do something here
+  // }, []);
+
   return (
     <View style={{ flex: 1, marginTop: 12 }}>
+      {/* {!activeMealRoutine!.shoppingList ||
+      activeMealRoutine!.shoppingList.length === 0 ? (
+        <LoadingShoppingList />
+      ) : ( */}
       <View style={{ flex: 1, marginHorizontal: 12 }}>
         <SectionList
           showsVerticalScrollIndicator={false}
-          sections={shoppingList}
+          sections={getShoppingList()}
+          extraData={activeMealRoutine!.shoppingList}
           keyExtractor={(item, index) =>
-            item!.ingredientId!._id.toString() + index
+            item!.ingredient!._id.toString() + index
           }
           renderItem={RenderShoppingItem}
           renderSectionFooter={RenderSectionFooter}
           renderSectionHeader={RenderShoppingCategoryHeader}
         />
         <AddShoppingItemComponent />
+        <TouchableOpacity onPress={deleteShoppingList}>
+          <Text_Text>DELETE SHOPPING LIST</Text_Text>
+        </TouchableOpacity>
       </View>
-
-      {/* <TouchableOpacity onPress={deleteShoppingList}>
-        <Text_Text>DELETE SHOPPING LIST</Text_Text>
-      </TouchableOpacity> */}
+      {/* )} */}
 
       {finished && (
         <BottomSheet

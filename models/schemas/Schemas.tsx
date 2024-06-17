@@ -57,20 +57,20 @@ export const MealRoutine_DailyMealsSchema = {
 };
 
 export type MealRoutine_ShoppingList = {
-  ingredientId: Ingredients;
+  ingredient: Ingredients;
   isAdded: boolean;
   totalQuantity?: string | number;
-  unitId: Units;
+  unit: Units;
 };
 
 export const MealRoutine_ShoppingListSchema = {
   name: "MealRoutine_ShoppingList",
   embedded: true,
   properties: {
-    ingredientId: "Ingredients",
+    ingredient: "Ingredients",
     isAdded: "bool",
     totalQuantity: "mixed",
-    unitId: "Units",
+    unit: "Units",
   },
 };
 
